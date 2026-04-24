@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bütçe Takibi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:820px;margin:0 auto;padding:1.5rem 1rem 4rem}
+h1{font-size:20px;font-weight:700;margin-bottom:1.4rem;letter-spacing:-.3px}
+.tabs{display:flex;background:#fff;border-radius:10px;border:1px solid #e5e5de;overflow:hidden;margin-bottom:1.2rem;flex-wrap:wrap}
+.tab{padding:10px 15px;font-size:13px;cursor:pointer;border:none;background:none;color:#888;font-weight:500;border-bottom:2px solid transparent;flex:1;text-align:center;white-space:nowrap}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;background:#fafaf8}
+.sec{display:none}.sec.active{display:block}
+
+/* metric cards */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:1.2rem}
+.mc{background:#fff;border:1px solid #e5e5de;border-radius:10px;padding:13px 15px}
+.mc label{font-size:11px;color:#999;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:500}
+.mc .v{font-size:20px;font-weight:700}
+.pos{color:#1D9E75}.neg{color:#D85A30}.blue{color:#2d7dd2}.warn{color:#c47a1a}
+
+/* cards */
+.card{background:#fff;border:1px solid #e5e5de;border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:1rem}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.ct{font-size:14px;font-weight:700}
+.bdg{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;display:inline-block}
+.bg{background:#EAF3DE;color:#2d6b0a}.br{background:#FCEBEB;color:#a32d2d}
+.ba{background:#FAEEDA;color:#854F0B}.bb{background:#E6F1FB;color:#185FA5}
+.bk{background:#f0f0ec;color:#666}.bor{background:#fff3e0;color:#c47a1a}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11px;color:#aaa;padding:5px 7px;border-bottom:1px solid #f0f0e8;text-transform:uppercase;letter-spacing:.3px}
+td{padding:8px 7px;border-bottom:1px solid #f5f5f0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+.ar{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.muted{color:#aaa;font-size:12px}
+
+/* form */
+input,select{font-size:13px;padding:7px 10px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a;width:100%}
+input:focus,select:focus{outline:none;border-color:#2d7dd2;box-shadow:0 0 0 3px rgba(45,125,210,.1)}
+.fr{display:grid;gap:8px;margin-top:12px;align-items:end}
+.fl{font-size:11px;color:#888;margin-bottom:3px;font-weight:500}
+.ab{background:#1a1a1a;border:none;border-radius:7px;padding:7px 16px;font-size:13px;cursor:pointer;color:#fff;height:36px;white-space:nowrap;font-weight:600}
+.ab:hover{background:#333}
+.dl{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:2px 6px;border-radius:4px}
+.dl:hover{color:#D85A30;background:#fff5f5}
+.edit-btn{background:none;border:1px solid #ddd;border-radius:5px;padding:2px 7px;font-size:11px;cursor:pointer;color:#666;margin-right:4px}
+.edit-btn:hover{background:#f5f5f0}
+
+/* progress bar */
+.bw{width:100%;height:5px;background:#f0f0e8;border-radius:3px;overflow:hidden;margin-top:4px}
+.bf{height:100%;border-radius:3px}
+
+/* waterfall chart */
+.wf-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.wf-lbl{width:140px;color:#888;font-size:12px;flex-shrink:0}
+.wf-bw{flex:1;height:9px;background:#f0f0e8;border-radius:4px;overflow:hidden}
+.wf-bf{height:100%;border-radius:4px}
+.wf-val{min-width:85px;text-align:right;font-weight:700;font-size:12px;flex-shrink:0}
+
+/* takvim */
+.tak-row{display:grid;grid-template-columns:105px 1fr 1fr 1fr 1fr;font-size:13px;border-bottom:1px solid #f5f5f0}
+.tak-row:last-child{border-bottom:none}
+.tak-row:hover{background:#fafaf8}
+.tak-hdr{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid #e8e8e0!important;background:#fafaf8}
+.tc{padding:8px 7px;font-variant-numeric:tabular-nums}
+.tc.r{text-align:right}.tc.b{font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#888;margin-bottom:10px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+
+/* banka renkleri */
+.garanti{color:#185FA5}.ziraat{color:#A32D2D}.halkbank{color:#3B6D11}
+
+/* özet toplam kutusu */
+.toplam-box{background:#fffbf5;border:1px solid #f0ddb5;border-radius:12px;padding:14px 16px;margin-bottom:1.2rem}
+.tb-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.tb-item{text-align:center}
+.tb-val{font-size:15px;font-weight:700;margin-bottom:2px}
+.tb-lbl{font-size:11px;color:#aaa}
+.tb-total{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #f0ddb5}
+.tb-total-lbl{font-size:13px;color:#888}
+.tb-total-val{font-size:20px;font-weight:700;color:#D85A30}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📊 Bütçe & Borç Takibi</h1>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('ozet')">Özet</button>
+    <button class="tab" onclick="sw('takvim')">Ödeme Takvimi</button>
+    <button class="tab" onclick="sw('gelir')">Gelirler</button>
+    <button class="tab" onclick="sw('borc')">Krediler</button>
+    <button class="tab" onclick="sw('kk')">Kredi Kartı</button>
+    <button class="tab" onclick="sw('diger')">Diğer Giderler</button>
+  </div>
+
+  <div id="s-ozet" class="sec active"></div>
+  <div id="s-takvim" class="sec"></div>
+  <div id="s-gelir" class="sec"></div>
+  <div id="s-borc" class="sec"></div>
+  <div id="s-kk" class="sec"></div>
+  <div id="s-diger" class="sec"></div>
+</div>
+
+<script>
+const fmt = v => new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(v);
+let nid = 300;
+
+// ── Sabit ödeme takvimi (tablodan alınan gerçek veriler) ──
+const TAK = [
+  {ay:'Mayıs 2026',    g:67353, z:73942, h:0},
+  {ay:'Haziran 2026',  g:67353, z:73942, h:37000},
+  {ay:'Temmuz 2026',   g:67353, z:73942, h:32000},
+  {ay:'Ağustos 2026',  g:0,     z:73942, h:32000},
+  {ay:'Eylül 2026',    g:0,     z:73942, h:0},
+  {ay:'Ekim 2026',     g:0,     z:73942, h:0},
+  {ay:'Kasım 2026',    g:0,     z:73942, h:0},
+  {ay:'Aralık 2026',   g:0,     z:73942, h:0},
+  {ay:'Ocak 2027',     g:0,     z:73942, h:0},
+  {ay:'Şubat 2027',    g:0,     z:73942, h:0},
+  {ay:'Mart 2027',     g:0,     z:73942, h:0},
+  {ay:'Nisan 2027',    g:0,     z:73942, h:0},
+];
+
+// ── Varsayılan başlangıç verisi ──
+const DEFAULT = {
+  gelirler: [
+    {id:1, ac:'Net Maaş', tutar:0, sik:'Aylık'},
+    {id:2, ac:'Eş Maaşı', tutar:0, sik:'Aylık'},
+  ],
+  borclar: [
+    {id:3, ac:'Nakit avans/kredi', bn:'Garanti',  tak:67353, kay:3},
+    {id:4, ac:'Nakit avans/kredi', bn:'Ziraat',   tak:73942, kay:12},
+    {id:5, ac:'Nakit avans/kredi', bn:'Halkbank', tak:37000, kay:3},
+  ],
+  kklar: [
+    {id:6, kart:'Garanti',  tutar:0, lim:0},
+    {id:7, kart:'Ziraat',   tutar:0, lim:0},
+    {id:8, kart:'Halkbank', tutar:0, lim:0},
+  ],
+  diger: []
+};
+
+// ── Veri yükleme / kaydetme (localStorage) ──
+function load() {
+  try {
+    const raw = localStorage.getItem('butce_v2');
+    if (raw) {
+      const d = JSON.parse(raw);
+      // find max id
+      [...d.gelirler,...d.borclar,...d.kklar,...d.diger].forEach(x => { if(x.id >= nid) nid = x.id+1; });
+      return d;
+    }
+  } catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() {
+  try { localStorage.setItem('butce_v2', JSON.stringify(st)); } catch(e){}
+}
+
+let st = load();
+
+// ── Hesaplamalar ──
+function tG() { return st.gelirler.reduce((s,g) => s + (g.sik==='Yıllık' ? g.tutar/12 : g.sik==='Tek seferlik' ? 0 : g.tutar), 0); }
+function tB() { return st.borclar.reduce((s,b) => s+b.tak, 0); }
+function tK() { return st.kklar.reduce((s,c) => s+c.tutar, 0); }
+function tD() { return st.diger.reduce((s,d) => s+d.tutar, 0); }
+
+// ── Sekme geçişi ──
+function sw(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['ozet','takvim','gelir','borc','kk','diger'][i]===n);
+  });
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-'+n).classList.add('active');
+}
+
+// ── RENDER: ÖZET ──
+function renderOzet() {
+  const gelir=tG(), borc=tB(), kk=tK(), dig=tD(), gider=borc+kk+dig, net=gelir-gider;
+  const pct = gelir>0 ? Math.max(0,Math.round(net/gelir*100)) : 0;
+  const maxG = Math.max(gelir,1);
+  const gList = [
+    {lbl:'Garanti taksit', v:st.borclar.filter(b=>b.bn==='Garanti').reduce((s,b)=>s+b.tak,0), c:'#185FA5'},
+    {lbl:'Ziraat taksit',  v:st.borclar.filter(b=>b.bn==='Ziraat').reduce((s,b)=>s+b.tak,0),  c:'#A32D2D'},
+    {lbl:'Halkbank taksit',v:st.borclar.filter(b=>b.bn==='Halkbank').reduce((s,b)=>s+b.tak,0),c:'#3B6D11'},
+    {lbl:'Kredi kartı',    v:kk,  c:'#c47a1a'},
+    {lbl:'Diğer giderler', v:dig, c:'#888'},
+  ].filter(d=>d.v>0);
+  const maxGid = Math.max(...gList.map(d=>d.v), 1);
+
+  document.getElementById('s-ozet').innerHTML = `
+    <div class="mg">
+      <div class="mc"><label>Toplam Gelir</label><div class="v pos">${fmt(gelir)}</div></div>
+      <div class="mc"><label>Toplam Gider</label><div class="v neg">${fmt(gider)}</div></div>
+      <div class="mc"><label>Net Kalan</label><div class="v ${net>=0?'pos':'neg'}">${fmt(net)}</div></div>
+      <div class="mc"><label>Tasarruf Oranı</label><div class="v blue">${pct}%</div></div>
+    </div>
+
+    <div class="toplam-box">
+      <div class="tb-grid">
+        <div class="tb-item"><div class="tb-val garanti">${fmt(202059)}</div><div class="tb-lbl">Garanti (3 taksit)</div></div>
+        <div class="tb-item"><div class="tb-val ziraat">${fmt(887304)}</div><div class="tb-lbl">Ziraat (12 taksit)</div></div>
+        <div class="tb-item"><div class="tb-val halkbank">${fmt(101000)}</div><div class="tb-lbl">Halkbank (3 taksit)</div></div>
+      </div>
+      <div class="tb-total">
+        <span class="tb-total-lbl">Kalan toplam kredi yükü</span>
+        <span class="tb-total-val">${fmt(1190363)}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">Gider dağılımı</span></div>
+      ${gList.length ? gList.map(d=>`
+        <div class="wf-row">
+          <div class="wf-lbl">${d.lbl}</div>
+          <div class="wf-bw"><div class="wf-bf" style="width:${Math.round(d.v/maxGid*100)}%;background:${d.c}"></div></div>
+          <div class="wf-val neg">${fmt(d.v)}</div>
+        </div>`).join('') : '<div style="color:#ccc;font-size:13px;padding:4px 0">Gider girilmedi</div>'}
+      ${gelir>0 ? `
+        <div class="wf-row" style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f0e8">
+          <div class="wf-lbl" style="color:#1a1a1a;font-weight:600">Net kalan</div>
+          <div class="wf-bw"><div class="wf-bf" style="width:${Math.min(100,Math.round(Math.max(0,net)/maxG*100))}%;background:${net>=0?'#1D9E75':'#D85A30'}"></div></div>
+          <div class="wf-val ${net>=0?'pos':'neg'}">${fmt(net)}</div>
+        </div>` : ''}
+    </div>
+  `;
+}
+
+// ── RENDER: TAKVİM ──
+function renderTakvim() {
+  const maxT = Math.max(...TAK.map(r=>r.g+r.z+r.h));
+  // bugün hangi satır?
+  const now = new Date();
+  const thisIdx = TAK.findIndex(r => {
+    const [ay,yil] = r.ay.split(' ');
+    const M = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'].indexOf(ay);
+    return parseInt(yil)===now.getFullYear() && M===now.getMonth();
+  });
+
+  const rows = TAK.map((r,i) => {
+    const tot = r.g+r.z+r.h;
+    const pct = Math.round(tot/maxT*100);
+    const isCurrent = i===thisIdx;
+    const gc = r.g>0 ? `<span class="garanti" style="font-weight:600">${fmt(r.g)}</span>` : '<span style="color:#ddd">—</span>';
+    const zc = r.z>0 ? `<span class="ziraat" style="font-weight:600">${fmt(r.z)}</span>` : '<span style="color:#ddd">—</span>';
+    const hc = r.h>0 ? `<span class="halkbank" style="font-weight:600">${fmt(r.h)}</span>` : '<span style="color:#ddd">—</span>';
+    return `<div class="tak-row${isCurrent?' current':''}">
+      <div class="tc">${isCurrent?'<b>'+r.ay+'</b>':r.ay}${isCurrent?'<br><span style="font-size:10px;color:#2d7dd2;font-weight:600">← Bu ay</span>':''}</div>
+      <div class="tc r">${gc}</div>
+      <div class="tc r">${zc}</div>
+      <div class="tc r">${hc}</div>
+      <div class="tc r b">${fmt(tot)}<div class="bw"><div class="bf" style="width:${pct}%;background:#D85A30;opacity:.6"></div></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('s-takvim').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">Aylık ödeme takvimi</span><span class="bdg br">Toplam: ${fmt(1190363)}</span></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#185FA5"></span>Garanti</span>
+        <span><span class="dot" style="background:#A32D2D"></span>Ziraat</span>
+        <span><span class="dot" style="background:#3B6D11"></span>Halkbank</span>
+      </div>
+      <div class="tak-row tak-hdr">
+        <div class="tc">Ay</div><div class="tc r">Garanti</div><div class="tc r">Ziraat</div><div class="tc r">Halkbank</div><div class="tc r b">Toplam</div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+// ── RENDER: GELİR ──
+function renderGelir() {
+  const rows = st.gelirler.map(g => `<tr>
+    <td>${g.ac}</td>
+    <td class="ar pos">${fmt(g.sik==='Yıllık'?g.tutar/12:g.tutar)}</td>
+    <td><span class="bdg bg">${g.sik}</span></td>
+    <td><button class="dl" onclick="del('gelirler',${g.id})">×</button></td>
+  </tr>`).join('');
+  document.getElementById('s-gelir').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">Gelirler</span><span class="bdg bg">${fmt(tG())}/ay</span></div>
+      <table><thead><tr><th>Açıklama</th><th>Tutar/ay</th><th>Sıklık</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="fr" style="grid-template-columns:2fr 1.2fr 1fr auto;margin-top:14px">
+        <div><div class="fl">Açıklama</div><input type="text" id="g-ac" placeholder="Maaş, ikramiye, kira geliri..."></div>
+        <div><div class="fl">Tutar (₺)</div><input type="number" id="g-tu" placeholder="0"></div>
+        <div><div class="fl">Sıklık</div><select id="g-si"><option>Aylık</option><option>Yıllık</option><option>Tek seferlik</option></select></div>
+        <div style="padding-top:18px"><button class="ab" onclick="addG()">+ Ekle</button></div>
+      </div>
+    </div>`;
+}
+
+// ── RENDER: BORÇ ──
+function renderBorc() {
+  const bnb = b => {const m={Garanti:'bb',Ziraat:'br',Halkbank:'bg'};return`<span class="bdg ${m[b]||'bk'}">${b}</span>`};
+  const rows = st.borclar.map(b => `<tr>
+    <td>${b.ac}</td>
+    <td>${bnb(b.bn)}</td>
+    <td class="ar neg">${fmt(b.tak)}</td>
+    <td class="muted">${b.kay} ay</td>
+    <td><button class="dl" onclick="del('borclar',${b.id})">×</button></td>
+  </tr>`).join('');
+  document.getElementById('s-borc').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">Kredi / Nakit Avans Taksitleri</span><span class="bdg br">${fmt(tB())}/ay</span></div>
+      <table><thead><tr><th>Açıklama</th><th>Banka</th><th>Taksit</th><th>Kalan</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="fr" style="grid-template-columns:1.5fr 1fr 1fr 0.8fr auto;margin-top:14px">
+        <div><div class="fl">Açıklama</div><input type="text" id="b-ac" placeholder="Açıklama..."></div>
+        <div><div class="fl">Banka</div><select id="b-bn"><option>Garanti</option><option>Ziraat</option><option>Halkbank</option><option>Diğer</option></select></div>
+        <div><div class="fl">Taksit (₺)</div><input type="number" id="b-ta" placeholder="0"></div>
+        <div><div class="fl">Kalan ay</div><input type="number" id="b-ka" placeholder="0"></div>
+        <div style="padding-top:18px"><button class="ab" onclick="addB()">+ Ekle</button></div>
+      </div>
+    </div>`;
+}
+
+// ── RENDER: KREDİ KARTI ──
+function renderKK() {
+  const rows = st.kklar.map(k => {
+    const p = k.lim>0 ? Math.min(100,Math.round(k.tutar/k.lim*100)) : 0;
+    const bc = p>70?'#D85A30':p>40?'#c47a1a':'#1D9E75';
+    return `<tr>
+      <td>${k.kart}</td>
+      <td class="ar">${fmt(k.tutar)}${k.lim>0?`<div class="bw"><div class="bf" style="width:${p}%;background:${bc}"></div></div>`:''}</td>
+      <td class="muted">${k.lim>0?fmt(k.lim):'—'}</td>
+      <td><button class="dl" onclick="del('kklar',${k.id})">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('s-kk').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">Kredi Kartı Harcamaları</span><span class="bdg ba">${fmt(tK())}</span></div>
+      <table><thead><tr><th>Kart</th><th>Bu ay</th><th>Limit</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="fr" style="grid-template-columns:1.5fr 1.1fr 1.1fr auto;margin-top:14px">
+        <div><div class="fl">Kart adı</div><input type="text" id="kk-ka" placeholder="Garanti, Ziraat, Halkbank..."></div>
+        <div><div class="fl">Bu ay (₺)</div><input type="number" id="kk-tu" placeholder="0"></div>
+        <div><div class="fl">Limit (₺)</div><input type="number" id="kk-li" placeholder="0"></div>
+        <div style="padding-top:18px"><button class="ab" onclick="addK()">+ Ekle</button></div>
+      </div>
+    </div>`;
+}
+
+// ── RENDER: DİĞER ──
+function renderDiger() {
+  const rows = st.diger.map(d => `<tr>
+    <td>${d.ac}</td>
+    <td class="ar neg">${fmt(d.tutar)}</td>
+    <td><span class="bdg bk">${d.tur}</span></td>
+    <td><button class="dl" onclick="del('diger',${d.id})">×</button></td>
+  </tr>`).join('');
+  document.getElementById('s-diger').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">Diğer Giderler</span><span class="bdg bk">${fmt(tD())}/ay</span></div>
+      <table><thead><tr><th>Açıklama</th><th>Tutar</th><th>Tür</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="fr" style="grid-template-columns:2fr 1.1fr 1fr auto;margin-top:14px">
+        <div><div class="fl">Açıklama</div><input type="text" id="d-ac" placeholder="Kira, market, okul, faturalar..."></div>
+        <div><div class="fl">Tutar (₺)</div><input type="number" id="d-tu" placeholder="0"></div>
+        <div><div class="fl">Tür</div><select id="d-tur"><option>Sabit</option><option>Değişken</option><option>Abonelik</option></select></div>
+        <div style="padding-top:18px"><button class="ab" onclick="addD()">+ Ekle</button></div>
+      </div>
+    </div>`;
+}
+
+// ── CRUD ──
+function del(cat,id){
+  st[cat]=st[cat].filter(x=>x.id!==id);
+  save(); renderAll();
+}
+function addG(){
+  const a=document.getElementById('g-ac').value.trim(),t=parseFloat(document.getElementById('g-tu').value),s=document.getElementById('g-si').value;
+  if(!a||!t) return;
+  st.gelirler.push({id:nid++,ac:a,tutar:t,sik:s});
+  document.getElementById('g-ac').value='';document.getElementById('g-tu').value='';
+  save();renderAll();
+}
+function addB(){
+  const a=document.getElementById('b-ac').value.trim(),t=parseFloat(document.getElementById('b-ta').value),b=document.getElementById('b-bn').value,m=parseInt(document.getElementById('b-ka').value)||0;
+  if(!a||!t) return;
+  st.borclar.push({id:nid++,ac:a,bn:b,tak:t,kay:m});
+  document.getElementById('b-ac').value='';document.getElementById('b-ta').value='';document.getElementById('b-ka').value='';
+  save();renderAll();
+}
+function addK(){
+  const ka=document.getElementById('kk-ka').value.trim(),t=parseFloat(document.getElementById('kk-tu').value),l=parseFloat(document.getElementById('kk-li').value)||0;
+  if(!ka||!t) return;
+  st.kklar.push({id:nid++,kart:ka,tutar:t,lim:l});
+  document.getElementById('kk-ka').value='';document.getElementById('kk-tu').value='';document.getElementById('kk-li').value='';
+  save();renderAll();
+}
+function addD(){
+  const a=document.getElementById('d-ac').value.trim(),t=parseFloat(document.getElementById('d-tu').value),tur=document.getElementById('d-tur').value;
+  if(!a||!t) return;
+  st.diger.push({id:nid++,ac:a,tutar:t,tur:tur});
+  document.getElementById('d-ac').value='';document.getElementById('d-tu').value='';
+  save();renderAll();
+}
+
+function renderAll(){renderOzet();renderTakvim();renderGelir();renderBorc();renderKK();renderDiger();}
+renderAll();
+</script>
+</body>
+</html>
