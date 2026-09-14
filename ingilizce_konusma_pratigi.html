@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İngilizce Konuşma Pratiği</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:820px;margin:0 auto;padding:1.5rem 1rem 4rem}
+h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.subtitle{font-size:13px;color:#888;margin-top:4px;margin-bottom:1.2rem}
+
+.warn-banner{background:#fffbf5;border:1px solid #f0ddb5;color:#7a5a12;border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:1.1rem;line-height:1.5}
+
+.tabs{display:flex;background:#fff;border-radius:10px;border:1px solid #e5e5de;overflow:hidden;margin-bottom:1.2rem;flex-wrap:wrap}
+.tab{padding:10px 15px;font-size:13px;cursor:pointer;border:none;background:none;color:#888;font-weight:500;border-bottom:2px solid transparent;flex:1;text-align:center;white-space:nowrap}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;background:#fafaf8}
+.sec{display:none}.sec.active{display:block}
+
+.card{background:#fff;border:1px solid #e5e5de;border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:1rem}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.ct{font-size:14px;font-weight:700}
+.muted{color:#999;font-size:12.5px}
+
+.bdg{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;display:inline-block;white-space:nowrap}
+.bg{background:#EAF3DE;color:#2d6b0a}.br{background:#FCEBEB;color:#a32d2d}
+.ba{background:#FAEEDA;color:#854F0B}.bb{background:#E6F1FB;color:#185FA5}
+.bk{background:#f0f0ec;color:#666}
+
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters select{font-size:12.5px;padding:7px 10px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ab{background:#1a1a1a;border:none;border-radius:7px;padding:8px 16px;font-size:13px;cursor:pointer;color:#fff;font-weight:600}
+.ab:hover{background:#333}
+.ab2{background:#fff;border:1px solid #ddd;border-radius:7px;padding:8px 14px;font-size:13px;cursor:pointer;color:#333;font-weight:500}
+.ab2:hover{background:#fafaf8}
+.mini-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px}
+
+.mic-btn{background:#2d7dd2;border:none;border-radius:7px;padding:8px 16px;font-size:13px;cursor:pointer;color:#fff;font-weight:600}
+.mic-btn:hover{background:#2468b5}
+.mic-btn[disabled]{background:#ddd;cursor:not-allowed;color:#999}
+.mic-btn.recording{background:#D85A30;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(216,90,48,.5)}70%{box-shadow:0 0 0 9px rgba(216,90,48,0)}100%{box-shadow:0 0 0 0 rgba(216,90,48,0)}}
+
+.result-box{background:#fafaf8;border:1px solid #f0f0e8;border-radius:9px;padding:10px 12px;margin-top:10px;font-size:13px}
+.score-row{margin-bottom:6px}
+.diff-line{margin-top:5px;line-height:1.7}
+.diff-lbl{color:#999;font-size:11px;text-transform:uppercase;letter-spacing:.3px;margin-right:4px}
+.w{margin-right:4px;display:inline-block}
+.w.ok{color:#1D9E75;font-weight:600}
+.w.miss{color:#D85A30;text-decoration:line-through}
+.w.extra{color:#c47a1a}
+.err-msg{color:#a32d2d;font-size:12.5px;margin-top:8px}
+
+.bubble{border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13.5px;max-width:92%}
+.bubble.app{background:#f0f4fa;margin-right:auto}
+.bubble.user{background:#fff8ec;margin-left:auto}
+.bubble.current{border:1.5px solid #2d7dd2}
+.bubble-role{font-size:10.5px;color:#999;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:600}
+.bubble-text{line-height:1.5}
+
+.hint{font-size:12.5px;color:#888;margin-bottom:8px}
+
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.2rem}
+.mc{background:#fff;border:1px solid #e5e5de;border-radius:10px;padding:13px 15px}
+.mc label{font-size:11px;color:#999;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:500}
+.mc .v{font-size:20px;font-weight:700}
+
+.wf-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.wf-lbl{width:135px;color:#888;font-size:12px;flex-shrink:0}
+.wf-bw{flex:1;height:9px;background:#f0f0e8;border-radius:4px;overflow:hidden}
+.wf-bf{height:100%;border-radius:4px;background:#2d7dd2}
+.wf-val{min-width:40px;text-align:right;font-weight:700;font-size:12px;flex-shrink:0}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-weight:600;font-size:11px;color:#aaa;padding:5px 7px;border-bottom:1px solid #f0f0e8;text-transform:uppercase;letter-spacing:.3px}
+td{padding:7px;border-bottom:1px solid #f5f5f0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+
+textarea{font-family:inherit;resize:vertical}
+select,input[type=range]{font-size:12.5px}
+.field-row{margin-bottom:16px}
+.field-lbl{font-size:12px;color:#888;margin-bottom:6px;font-weight:500}
+.rate-val{font-size:12.5px;color:#1a1a1a;font-weight:600;margin-left:8px}
+.status-line{font-size:12.5px;margin-bottom:6px;color:#555}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🗣️ İngilizce Konuşma Pratiği</h1>
+  <div class="subtitle">Sesli pratik yap, telaffuzunu tarayıcının konuşma tanıma özelliğiyle anında kontrol et, doğal bir sesle geri bildirim al.</div>
+
+  <div id="banner"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw('pratik')">🗣️ Pratik</button>
+    <button class="tab" onclick="sw('diyalog')">💬 Diyalog</button>
+    <button class="tab" onclick="sw('serbest')">✍️ Serbest</button>
+    <button class="tab" onclick="sw('istatistik')">📈 İstatistik</button>
+    <button class="tab" onclick="sw('ayarlar')">⚙️ Ayarlar</button>
+  </div>
+
+  <div id="s-pratik" class="sec active"></div>
+  <div id="s-diyalog" class="sec"></div>
+  <div id="s-serbest" class="sec"></div>
+  <div id="s-istatistik" class="sec"></div>
+  <div id="s-ayarlar" class="sec"></div>
+</div>
+
+<script>
+// ── Veri: pratik cümleleri ──
+const CATEGORIES = [
+  {slug:'selam',    label:'Selamlaşma & Tanışma',     level:'Başlangıç'},
+  {slug:'gunluk',   label:'Günlük Konuşma',           level:'Başlangıç'},
+  {slug:'restoran', label:'Restoran & Kafe',          level:'Orta'},
+  {slug:'seyahat',  label:'Seyahat & Havaalanı',      level:'Orta'},
+  {slug:'telefon',  label:'Telefon Görüşmesi',        level:'Orta'},
+  {slug:'is',       label:'İş Görüşmesi',             level:'İleri'},
+];
+
+const SENTENCES = [
+  {id:1,  cat:'selam', en:"Hi, how are you doing today?", tr:"Merhaba, bugün nasılsın?"},
+  {id:2,  cat:'selam', en:"Nice to meet you. What's your name?", tr:"Tanıştığımıza memnun oldum. Adın ne?"},
+  {id:3,  cat:'selam', en:"I'm doing great, thanks for asking.", tr:"Çok iyiyim, sorduğun için teşekkürler."},
+  {id:4,  cat:'selam', en:"Where are you from originally?", tr:"Aslen nerelisin?"},
+  {id:5,  cat:'selam', en:"It was really nice talking to you.", tr:"Seninle konuşmak gerçekten güzeldi."},
+
+  {id:6,  cat:'gunluk', en:"What did you do over the weekend?", tr:"Hafta sonu ne yaptın?"},
+  {id:7,  cat:'gunluk', en:"I usually wake up around seven in the morning.", tr:"Genelde sabah yedi civarı kalkarım."},
+  {id:8,  cat:'gunluk', en:"Can you help me with something, please?", tr:"Bana bir konuda yardım edebilir misin lütfen?"},
+  {id:9,  cat:'gunluk', en:"I'm a little tired today, to be honest.", tr:"Açıkçası bugün biraz yorgunum."},
+  {id:10, cat:'gunluk', en:"Let's meet up sometime next week.", tr:"Önümüzdeki hafta bir ara buluşalım."},
+
+  {id:11, cat:'restoran', en:"Could I see the menu, please?", tr:"Menüyü görebilir miyim lütfen?"},
+  {id:12, cat:'restoran', en:"I'd like to order a medium coffee with milk.", tr:"Sütlü, orta boy bir kahve almak istiyorum."},
+  {id:13, cat:'restoran', en:"Is this dish spicy? I can't handle spicy food.", tr:"Bu yemek acılı mı? Acı yemeğe dayanamam."},
+  {id:14, cat:'restoran', en:"Could we get the bill, please?", tr:"Hesabı alabilir miyiz lütfen?"},
+  {id:15, cat:'restoran', en:"Everything was delicious, thank you.", tr:"Her şey çok lezzetliydi, teşekkür ederim."},
+
+  {id:16, cat:'seyahat', en:"Excuse me, where is the nearest bus stop?", tr:"Affedersiniz, en yakın otobüs durağı nerede?"},
+  {id:17, cat:'seyahat', en:"I'd like to check in for my flight, please.", tr:"Uçuşum için check-in yaptırmak istiyorum lütfen."},
+  {id:18, cat:'seyahat', en:"How long does it take to get to the city center?", tr:"Şehir merkezine ulaşmak ne kadar sürer?"},
+  {id:19, cat:'seyahat', en:"I think I'm lost. Can you show me on the map?", tr:"Sanırım kayboldum. Haritada gösterebilir misiniz?"},
+  {id:20, cat:'seyahat', en:"What time does the train leave?", tr:"Tren kaçta kalkıyor?"},
+
+  {id:21, cat:'telefon', en:"Hello, may I speak to Mr. Johnson, please?", tr:"Merhaba, Bay Johnson ile görüşebilir miyim lütfen?"},
+  {id:22, cat:'telefon', en:"I'm calling about the appointment I made yesterday.", tr:"Dün aldığım randevu hakkında arıyorum."},
+  {id:23, cat:'telefon', en:"Could you repeat that? The line is a bit unclear.", tr:"Tekrar edebilir misiniz? Hat biraz net değil."},
+  {id:24, cat:'telefon', en:"I'll call you back in about ten minutes.", tr:"Sizi yaklaşık on dakika içinde geri arayacağım."},
+  {id:25, cat:'telefon', en:"Thank you for your time. Have a good day.", tr:"Vaktiniz için teşekkür ederim. İyi günler."},
+
+  {id:26, cat:'is', en:"I have over five years of experience in this field.", tr:"Bu alanda beş yılı aşkın deneyimim var."},
+  {id:27, cat:'is', en:"I'm a fast learner and I adapt well to new environments.", tr:"Hızlı öğrenen biriyim ve yeni ortamlara kolay uyum sağlarım."},
+  {id:28, cat:'is', en:"What are the main responsibilities of this position?", tr:"Bu pozisyonun ana sorumlulukları nelerdir?"},
+  {id:29, cat:'is', en:"I believe my skills align well with your requirements.", tr:"Yeteneklerimin sizin gereksinimlerinizle iyi örtüştüğünü düşünüyorum."},
+  {id:30, cat:'is', en:"Thank you for considering my application.", tr:"Başvurumu değerlendirdiğiniz için teşekkür ederim."},
+];
+
+// ── Veri: diyalog senaryoları ──
+const DIALOGUES = [
+  {
+    id:'cafe', title:'Kafede Sipariş Verme', level:'Başlangıç',
+    desc:'Bir kafede içecek sipariş etmeyi pratik et.',
+    lines:[
+      {speaker:'app',  text:"Hi there! Welcome to Sunny Café. What can I get for you today?"},
+      {speaker:'user', hint:'Kendini tanıt ve bir içecek sipariş et.', keywords:['coffee','tea','latte','like','please','would'], model:"Hi! I'd like a medium latte, please."},
+      {speaker:'app',  text:"Sure! For here or to go?"},
+      {speaker:'user', hint:'Burada mı yoksa paket mi istediğini söyle.', keywords:['here','to go','stay'], model:"To go, please."},
+      {speaker:'app',  text:"No problem. Would you like anything else, like a pastry or a muffin?"},
+      {speaker:'user', hint:'Nazikçe hayır de.', keywords:['no','thanks','thank you'], model:"No, thank you. That's all."},
+      {speaker:'app',  text:"Great, that'll be four dollars fifty. Have a wonderful day!"},
+    ]
+  },
+  {
+    id:'airport', title:'Havaalanında Check-in', level:'Orta',
+    desc:'Uçuş check-in işlemini İngilizce olarak yürütmeyi pratik et.',
+    lines:[
+      {speaker:'app',  text:"Good morning! Can I see your passport and ticket, please?"},
+      {speaker:'user', hint:'Belgelerini uzattığını belirten bir cümle söyle.', keywords:['here','sure','yes','passport'], model:"Sure, here you go."},
+      {speaker:'app',  text:"Thank you. Do you have any checked baggage today?"},
+      {speaker:'user', hint:'Bagajın olup olmadığını söyle.', keywords:['bag','suitcase','yes','no','one'], model:"Yes, I have one suitcase to check in."},
+      {speaker:'app',  text:"Alright, please place it on the scale. Would you like a window or aisle seat?"},
+      {speaker:'user', hint:'Koltuk tercihini belirt.', keywords:['window','aisle','seat','prefer'], model:"I'd prefer a window seat, if possible."},
+      {speaker:'app',  text:"Perfect, here's your boarding pass. Your gate is B12 and boarding starts at ten forty. Have a safe flight!"},
+    ]
+  },
+  {
+    id:'interview', title:'İş Görüşmesi', level:'İleri',
+    desc:'Bir iş görüşmesinde kendini ifade etmeyi pratik et.',
+    lines:[
+      {speaker:'app',  text:"Thanks for coming in today. Can you tell me a little about yourself?"},
+      {speaker:'user', hint:'Kısaca kendini ve deneyimini tanıt.', keywords:['experience','years','worked','background','i am','i\'m'], model:"Sure. I have five years of experience in marketing, and I currently work as a project coordinator."},
+      {speaker:'app',  text:"That's great. Why are you interested in this position?"},
+      {speaker:'app2', text:""},
+      {speaker:'user', hint:'Bu pozisyona neden ilgi duyduğunu anlat.', keywords:['interested','opportunity','company','grow','because'], model:"I'm really interested in this role because it offers a great opportunity to grow and use my skills."},
+      {speaker:'app',  text:"What would you say is your biggest strength?"},
+      {speaker:'user', hint:'Güçlü bir yönünden bahset.', keywords:['strength','good at','organized','communication','team'], model:"I'd say my biggest strength is communication — I'm good at working with teams and solving problems together."},
+      {speaker:'app',  text:"Thank you, that's very helpful. We'll be in touch soon. Have a great day!"},
+    ]
+  },
+];
+// remove the stray empty placeholder line accidentally kept above
+DIALOGUES[2].lines = DIALOGUES[2].lines.filter(l => !(l.speaker==='app2'));
+
+// ── Durum / kalıcı depolama ──
+const STORAGE_KEY = 'ing_pratik_v1';
+const DEFAULT_STATE = { attempts:[], bestScores:{}, dialogProgress:{}, settings:{voiceURI:'', accent:'en-US', rate:0.95} };
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      return Object.assign({}, DEFAULT_STATE, d, {settings: Object.assign({}, DEFAULT_STATE.settings, d.settings||{})});
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+
+let state = load();
+let settings = state.settings;
+
+let currentTab = 'pratik';
+const TABS = ['pratik','diyalog','serbest','istatistik','ayarlar'];
+let currentDialogueId = null;
+let filterCat = 'all';
+let filterLevel = 'all';
+let freeText = '';
+let liveResults = {};
+let errorMsgs = {};
+let recState = {active:false, kind:null, key:null, rec:null};
+let voices = [];
+
+// ── Yardımcılar ──
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function catLabel(slug){
+  const c = CATEGORIES.find(x=>x.slug===slug);
+  if(c) return c.label;
+  if(slug==='serbest') return 'Serbest Pratik';
+  const d = DIALOGUES.find(x=>x.id===slug);
+  return d ? d.title : slug;
+}
+function scoreBadgeClass(score){ return score>=85 ? 'bg' : score>=60 ? 'ba' : 'br'; }
+function levelBadgeClass(level){ return level==='Başlangıç' ? 'bg' : level==='Orta' ? 'ba' : 'br'; }
+
+// ── Kelime hizalama / skor (LCS tabanlı) ──
+function normWords(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9' ]+/g,' ').split(/\s+/).filter(Boolean); }
+function alignWords(target, spoken){
+  const a = normWords(target), b = normWords(spoken);
+  const n=a.length, m=b.length;
+  const dp = Array.from({length:n+1}, () => new Array(m+1).fill(0));
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++) dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+  let i=n, j=m;
+  const aMatch = new Array(n).fill(false), bMatch = new Array(m).fill(false);
+  while(i>0 && j>0){
+    if(a[i-1]===b[j-1]){ aMatch[i-1]=true; bMatch[j-1]=true; i--; j--; }
+    else if(dp[i-1][j] >= dp[i][j-1]) i--; else j--;
+  }
+  const score = n ? Math.round(dp[n][m]/n*100) : 0;
+  return {targetWords:a, spokenWords:b, aMatch, bMatch, score};
+}
+function renderDiffHTML(align){
+  const tHtml = align.targetWords.map((w,idx)=>`<span class="w ${align.aMatch[idx]?'ok':'miss'}">${escapeHtml(w)}</span>`).join('');
+  const sHtml = align.spokenWords.length ? align.spokenWords.map((w,idx)=>`<span class="w ${align.bMatch[idx]?'ok':'extra'}">${escapeHtml(w)}</span>`).join('') : '<span class="muted">(algılanamadı)</span>';
+  return {tHtml, sHtml};
+}
+function keywordScore(spoken, keywords){
+  if(!keywords || !keywords.length) return spoken.trim() ? 80 : 0;
+  const norm = ' ' + String(spoken||'').toLowerCase().replace(/[^a-z0-9' ]+/g,' ') + ' ';
+  let hit = 0;
+  keywords.forEach(k => { if(norm.includes(k.toLowerCase())) hit++; });
+  return Math.round(hit/keywords.length*100);
+}
+
+// ── Ses sentezi (native/doğal ses) ──
+function accentLang(){ return settings.accent || 'en-US'; }
+function refreshVoices(){
+  if(!('speechSynthesis' in window)) return;
+  voices = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith('en'));
+  if(currentTab==='ayarlar') renderAyarlar();
+}
+function getSelectedVoice(){
+  if(settings.voiceURI){
+    const v = voices.find(x=>x.voiceURI===settings.voiceURI);
+    if(v) return v;
+  }
+  const accent = accentLang();
+  const natural = voices.find(v => v.lang===accent && /natural|online|neural/i.test(v.name));
+  if(natural) return natural;
+  const exact = voices.find(v => v.lang===accent);
+  if(exact) return exact;
+  const primary = accent.split('-')[0];
+  const partial = voices.find(v => v.lang.toLowerCase().startsWith(primary));
+  if(partial) return partial;
+  return voices[0] || null;
+}
+function speak(text, rateOverride){
+  if(!('speechSynthesis' in window) || !text) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const u = new SpeechSynthesisUtterance(text);
+  const v = getSelectedVoice();
+  if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = accentLang(); }
+  u.rate = rateOverride || settings.rate || 0.95;
+  speechSynthesis.speak(u);
+}
+function speakSentence(id){ const s = SENTENCES.find(x=>x.id===id); if(s) speak(s.en); }
+function speakDialogueLine(dialogueId, lineIndex){ const d = DIALOGUES.find(x=>x.id===dialogueId); if(d && d.lines[lineIndex]) speak(d.lines[lineIndex].text); }
+function speakDialogueModel(dialogueId, lineIndex){ const d = DIALOGUES.find(x=>x.id===dialogueId); if(d && d.lines[lineIndex]) speak(d.lines[lineIndex].model); }
+function speakFreeText(){ const el = document.getElementById('free-input'); speak(el ? el.value : freeText); }
+
+// ── Konuşma tanıma (mikrofon) ──
+function micSupported(){ return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+function toggleMic(kind, key){
+  if(recState.active){
+    if(recState.kind===kind && String(recState.key)===String(key)) recState.rec.stop();
+    return;
+  }
+  if(!micSupported()){ alert('Tarayıcınız gerçek zamanlı konuşma tanımayı desteklemiyor. Lütfen bilgisayarda Google Chrome veya Microsoft Edge kullanın.'); return; }
+  if(kind==='free'){
+    const el = document.getElementById('free-input');
+    const txt = el ? el.value : freeText;
+    if(!txt || !txt.trim()){ alert('Önce pratik edeceğin İngilizce metni yaz.'); return; }
+  }
+  delete errorMsgs[kind+':'+key];
+  const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SRClass();
+  rec.lang = accentLang();
+  rec.interimResults = false;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+  recState = {active:true, kind, key, rec};
+  renderCurrent();
+  rec.onresult = (e) => {
+    let t = '';
+    for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+    handleTranscript(kind, key, t.trim());
+  };
+  rec.onerror = (e) => {
+    recState = {active:false, kind:null, key:null, rec:null};
+    errorMsgs[kind+':'+key] = e.error==='no-speech' ? 'Ses algılanamadı, tekrar deneyin.'
+      : e.error==='not-allowed' ? 'Mikrofon izni verilmedi. Tarayıcı ayarlarından izin verin.'
+      : 'Bir hata oluştu: ' + e.error;
+    renderCurrent();
+  };
+  rec.onend = () => {
+    if(recState.active && recState.kind===kind && String(recState.key)===String(key)){
+      recState = {active:false, kind:null, key:null, rec:null};
+      renderCurrent();
+    }
+  };
+  try{ rec.start(); }catch(err){ recState = {active:false, kind:null, key:null, rec:null}; }
+}
+function micButtonHTML(kind, key){
+  const isThis = recState.active && recState.kind===kind && String(recState.key)===String(key);
+  const otherActive = recState.active && !isThis;
+  const label = isThis ? '⏹ Durdur' : '🎤 Kaydet';
+  const cls = 'mic-btn' + (isThis ? ' recording' : '');
+  const disabledAttr = otherActive ? 'disabled' : '';
+  const keyArg = typeof key==='number' ? key : `'${key}'`;
+  return `<button class="${cls}" ${disabledAttr} onclick="toggleMic('${kind}', ${keyArg})">${label}</button>`;
+}
+function resultBlockHTML(kind, key){
+  const err = errorMsgs[kind+':'+key];
+  if(err) return `<div class="err-msg">⚠️ ${escapeHtml(err)}</div>`;
+  const r = liveResults[kind+':'+key];
+  if(!r) return '';
+  const {tHtml, sHtml} = renderDiffHTML(r.align);
+  return `<div class="result-box">
+    <div class="score-row"><span class="bdg ${scoreBadgeClass(r.align.score)}">Skor: ${r.align.score}</span></div>
+    <div class="diff-line"><span class="diff-lbl">Hedef</span><br>${tHtml}</div>
+    <div class="diff-line"><span class="diff-lbl">Senin söylediğin</span><br>${sHtml}</div>
+  </div>`;
+}
+
+function recordAttempt(obj){
+  state.attempts.unshift(Object.assign({ts:Date.now()}, obj));
+  if(state.attempts.length>500) state.attempts.length = 500;
+}
+function updateBest(id, score){
+  if(!(id in state.bestScores) || score > state.bestScores[id]) state.bestScores[id] = score;
+}
+function handleTranscript(kind, key, transcript){
+  if(kind==='sentence'){
+    const s = SENTENCES.find(x=>x.id===Number(key));
+    if(!s) return;
+    const align = alignWords(s.en, transcript);
+    liveResults['sentence:'+key] = {transcript, align};
+    updateBest(s.id, align.score);
+    recordAttempt({kind:'sentence', cat:s.cat, text:s.en, score:align.score});
+  } else if(kind==='free'){
+    const el = document.getElementById('free-input');
+    const target = (el ? el.value : freeText) || '';
+    const align = alignWords(target, transcript);
+    liveResults['free:'+key] = {transcript, align};
+    recordAttempt({kind:'free', cat:'serbest', text:target.slice(0,80), score:align.score});
+  } else if(kind==='dialogue'){
+    const idx = key.lastIndexOf(':');
+    const dlgId = key.slice(0, idx);
+    const lineIndex = Number(key.slice(idx+1));
+    const d = DIALOGUES.find(x=>x.id===dlgId);
+    if(!d) return;
+    const line = d.lines[lineIndex];
+    const score = keywordScore(transcript, line.keywords);
+    if(!state.dialogProgress[dlgId]) state.dialogProgress[dlgId] = {lineIndex:0, answers:{}};
+    state.dialogProgress[dlgId].answers[lineIndex] = {transcript, score};
+    recordAttempt({kind:'dialogue', cat:dlgId, text:line.model, score});
+  }
+  save();
+  renderCurrent();
+}
+
+// ── Sekme geçişi ──
+function sw(n){
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', TABS[i]===n));
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-'+n).classList.add('active');
+  renderCurrent();
+}
+function renderCurrent(){
+  if(currentTab==='pratik') renderPratik();
+  else if(currentTab==='diyalog') renderDiyalog();
+  else if(currentTab==='serbest') renderSerbest();
+  else if(currentTab==='istatistik') renderIstatistik();
+  else if(currentTab==='ayarlar') renderAyarlar();
+}
+
+// ── RENDER: PRATİK ──
+function setFilterCat(v){ filterCat = v; renderPratik(); }
+function setFilterLevel(v){ filterLevel = v; renderPratik(); }
+function renderPratik(){
+  const catOpts = ['<option value="all">Tüm kategoriler</option>']
+    .concat(CATEGORIES.map(c => `<option value="${c.slug}" ${filterCat===c.slug?'selected':''}>${c.label}</option>`)).join('');
+  const levels = ['Başlangıç','Orta','İleri'];
+  const lvlOpts = ['<option value="all">Tüm seviyeler</option>']
+    .concat(levels.map(l => `<option value="${l}" ${filterLevel===l?'selected':''}>${l}</option>`)).join('');
+
+  const list = SENTENCES.filter(s => {
+    const cat = CATEGORIES.find(c=>c.slug===s.cat);
+    if(filterCat!=='all' && s.cat!==filterCat) return false;
+    if(filterLevel!=='all' && cat.level!==filterLevel) return false;
+    return true;
+  });
+
+  const cards = list.map(s => {
+    const cat = CATEGORIES.find(c=>c.slug===s.cat);
+    const best = state.bestScores[s.id];
+    const bestBadge = best!==undefined ? `<span class="bdg ${scoreBadgeClass(best)}">En iyi: ${best}</span>` : `<span class="bdg bk">Henüz denenmedi</span>`;
+    return `<div class="card">
+      <div class="ch">
+        <span class="ct">${escapeHtml(s.en)}</span>
+        <span style="display:flex;gap:6px">
+          <span class="bdg ${levelBadgeClass(cat.level)}">${cat.level}</span>
+          ${bestBadge}
+        </span>
+      </div>
+      <div class="muted">${escapeHtml(s.tr)}</div>
+      <div class="actions">
+        <button class="ab2" onclick="speakSentence(${s.id})">🔊 Dinle</button>
+        ${micButtonHTML('sentence', s.id)}
+      </div>
+      ${resultBlockHTML('sentence', s.id)}
+    </div>`;
+  }).join('');
+
+  document.getElementById('s-pratik').innerHTML = `
+    <div class="filters">
+      <select onchange="setFilterCat(this.value)">${catOpts}</select>
+      <select onchange="setFilterLevel(this.value)">${lvlOpts}</select>
+    </div>
+    ${cards || '<div class="card muted">Bu filtrelerle eşleşen cümle bulunamadı.</div>'}
+  `;
+}
+
+// ── RENDER: DİYALOG ──
+function openDialogue(id){
+  currentDialogueId = id;
+  if(!state.dialogProgress[id]) state.dialogProgress[id] = {lineIndex:0, answers:{}};
+  maybeSpeakCurrentDialogueLine();
+  save();
+  renderCurrent();
+}
+function backToDialogueList(){ currentDialogueId = null; renderCurrent(); }
+function maybeSpeakCurrentDialogueLine(){
+  const d = DIALOGUES.find(x=>x.id===currentDialogueId);
+  if(!d) return;
+  const prog = state.dialogProgress[d.id];
+  if(prog.lineIndex < d.lines.length && d.lines[prog.lineIndex].speaker==='app'){
+    speak(d.lines[prog.lineIndex].text);
+  }
+}
+function advanceDialogue(){
+  const d = DIALOGUES.find(x=>x.id===currentDialogueId);
+  const prog = state.dialogProgress[d.id];
+  prog.lineIndex++;
+  save();
+  maybeSpeakCurrentDialogueLine();
+  renderCurrent();
+}
+function restartDialogue(id){
+  state.dialogProgress[id] = {lineIndex:0, answers:{}};
+  currentDialogueId = id;
+  save();
+  maybeSpeakCurrentDialogueLine();
+  renderCurrent();
+}
+function renderDiyalog(){
+  if(!currentDialogueId){
+    const cards = DIALOGUES.map(d => {
+      const prog = state.dialogProgress[d.id];
+      const doneIdx = prog ? prog.lineIndex : 0;
+      const completed = prog && prog.lineIndex >= d.lines.length;
+      const statusLabel = completed ? 'Tamamlandı ✅' : doneIdx>0 ? `Devam ediyor (${doneIdx}/${d.lines.length})` : 'Başlanmadı';
+      const btnLabel = completed ? 'Tekrar Yap' : doneIdx>0 ? 'Devam Et' : 'Başla';
+      return `<div class="card">
+        <div class="ch">
+          <span class="ct">${escapeHtml(d.title)}</span>
+          <span class="bdg ${levelBadgeClass(d.level)}">${d.level}</span>
+        </div>
+        <div class="muted">${escapeHtml(d.desc)}</div>
+        <div class="actions" style="align-items:center;justify-content:space-between">
+          <span class="muted">${statusLabel}</span>
+          <button class="ab" onclick="openDialogue('${d.id}')">${btnLabel}</button>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('s-diyalog').innerHTML = cards;
+    return;
+  }
+
+  const d = DIALOGUES.find(x=>x.id===currentDialogueId);
+  const prog = state.dialogProgress[d.id];
+  let history = '';
+  for(let i=0;i<Math.min(prog.lineIndex, d.lines.length);i++){
+    const line = d.lines[i];
+    if(line.speaker==='app'){
+      history += `<div class="bubble app"><div class="bubble-role">🤖 Konuşma Partneri</div><div class="bubble-text">${escapeHtml(line.text)}</div></div>`;
+    } else {
+      const ans = prog.answers[i];
+      history += `<div class="bubble user"><div class="bubble-role">Sen</div><div class="bubble-text">${ans ? escapeHtml(ans.transcript || '(sessiz)') : ''}</div>${ans ? `<div style="margin-top:4px"><span class="bdg ${scoreBadgeClass(ans.score)}">Skor: ${ans.score}</span></div>` : ''}</div>`;
+    }
+  }
+
+  let current = '';
+  if(prog.lineIndex < d.lines.length){
+    const line = d.lines[prog.lineIndex];
+    if(line.speaker==='app'){
+      current = `<div class="bubble app current">
+        <div class="bubble-role">🤖 Konuşma Partneri</div>
+        <div class="bubble-text">${escapeHtml(line.text)}</div>
+        <div class="actions" style="margin-top:8px">
+          <button class="ab2" onclick="speakDialogueLine('${d.id}', ${prog.lineIndex})">🔊 Tekrar Dinle</button>
+          <button class="ab" onclick="advanceDialogue()">Devam →</button>
+        </div>
+      </div>`;
+    } else {
+      const key = d.id + ':' + prog.lineIndex;
+      const ans = prog.answers[prog.lineIndex];
+      current = `<div class="bubble user current">
+        <div class="bubble-role">Senin Sıran</div>
+        <div class="hint">💡 ${escapeHtml(line.hint)}</div>
+        <div class="actions">${micButtonHTML('dialogue', key)}</div>
+        ${errorMsgs['dialogue:'+key] ? `<div class="err-msg">⚠️ ${escapeHtml(errorMsgs['dialogue:'+key])}</div>` : ''}
+        ${ans ? `
+          <div class="result-box">
+            <div class="score-row"><span class="bdg ${scoreBadgeClass(ans.score)}">Skor: ${ans.score}</span></div>
+            <div class="diff-line"><span class="diff-lbl">Sen dedin ki</span><br>${escapeHtml(ans.transcript || '(sessiz)')}</div>
+            <div class="diff-line"><span class="diff-lbl">Örnek cevap</span><br>${escapeHtml(line.model)} <button class="mini-btn" onclick="speakDialogueModel('${d.id}', ${prog.lineIndex})">🔊</button></div>
+          </div>
+          <div class="actions"><button class="ab" onclick="advanceDialogue()">Sonraki →</button></div>
+        ` : ''}
+      </div>`;
+    }
+  } else {
+    const scores = Object.values(prog.answers).map(a=>a.score);
+    const avg = scores.length ? Math.round(scores.reduce((s,v)=>s+v,0)/scores.length) : 0;
+    current = `<div class="card" style="background:#fafaf8">
+      <div class="ct">🎉 Diyalog tamamlandı!</div>
+      <div class="muted" style="margin:8px 0">Ortalama skor: <b>${avg}</b></div>
+      <div class="actions">
+        <button class="ab2" onclick="restartDialogue('${d.id}')">Baştan Başla</button>
+        <button class="ab" onclick="backToDialogueList()">Diyalog Listesine Dön</button>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('s-diyalog').innerHTML = `
+    <div class="ch" style="margin-bottom:10px">
+      <button class="ab2" onclick="backToDialogueList()">← Geri</button>
+      <span class="bdg ${levelBadgeClass(d.level)}">${d.level}</span>
+    </div>
+    <div class="ct" style="margin-bottom:10px">${escapeHtml(d.title)}</div>
+    ${history}
+    ${current}
+  `;
+}
+
+// ── RENDER: SERBEST ──
+function randomFreeSentence(){
+  const s = SENTENCES[Math.floor(Math.random()*SENTENCES.length)];
+  freeText = s.en;
+  renderSerbest();
+}
+function onFreeInput(el){ freeText = el.value; }
+function renderSerbest(){
+  document.getElementById('s-serbest').innerHTML = `
+    <div class="card">
+      <div class="ct" style="margin-bottom:8px">Serbest Pratik</div>
+      <div class="muted" style="margin-bottom:10px">Herhangi bir İngilizce cümle veya paragraf yaz, yüksek sesle oku ve telaffuzunu kontrol et.</div>
+      <textarea id="free-input" rows="3" style="width:100%;font-size:14px;padding:10px;border:1px solid #ddd;border-radius:8px" placeholder="Type or paste an English sentence here..." oninput="onFreeInput(this)">${escapeHtml(freeText)}</textarea>
+      <div class="actions">
+        <button class="ab2" onclick="randomFreeSentence()">🎲 Rastgele Cümle</button>
+        <button class="ab2" onclick="speakFreeText()">🔊 Dinle</button>
+        ${micButtonHTML('free','main')}
+      </div>
+      ${resultBlockHTML('free','main')}
+    </div>
+  `;
+}
+
+// ── RENDER: İSTATİSTİK ──
+function computeStreak(){
+  const days = new Set(state.attempts.map(a => new Date(a.ts).toDateString()));
+  let d = new Date(); d.setHours(0,0,0,0);
+  if(!days.has(d.toDateString())) d.setDate(d.getDate()-1);
+  let streak = 0;
+  while(days.has(d.toDateString())){ streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+function resetStats(){
+  if(!confirm('Tüm ilerleme ve istatistikler silinecek. Emin misin?')) return;
+  state.attempts = []; state.bestScores = {}; state.dialogProgress = {};
+  save(); renderCurrent();
+}
+function renderIstatistik(){
+  const attempts = state.attempts;
+  const total = attempts.length;
+  const avg = total ? Math.round(attempts.reduce((s,a)=>s+a.score,0)/total) : 0;
+  const streak = computeStreak();
+
+  const byCat = {};
+  attempts.forEach(a => { (byCat[a.cat] = byCat[a.cat] || []).push(a.score); });
+  const catAvgs = Object.entries(byCat).map(([cat,scores]) => ({
+    cat, avg: Math.round(scores.reduce((s,v)=>s+v,0)/scores.length), count: scores.length
+  })).sort((a,b) => b.avg - a.avg);
+
+  const rows = attempts.slice(0,15).map(a => {
+    const dt = new Date(a.ts);
+    const dstr = dt.toLocaleDateString('tr-TR') + ' ' + dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    const text = (a.text||'').length>42 ? a.text.slice(0,42)+'…' : a.text;
+    return `<tr>
+      <td class="muted">${dstr}</td>
+      <td>${escapeHtml(catLabel(a.cat))}</td>
+      <td>${escapeHtml(text)}</td>
+      <td><span class="bdg ${scoreBadgeClass(a.score)}">${a.score}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('s-istatistik').innerHTML = `
+    <div class="mg">
+      <div class="mc"><label>Toplam Deneme</label><div class="v">${total}</div></div>
+      <div class="mc"><label>Ortalama Skor</label><div class="v">${avg}</div></div>
+      <div class="mc"><label>Pratik Serisi</label><div class="v">${streak} gün</div></div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">Kategori bazlı ortalama</span></div>
+      ${catAvgs.length ? catAvgs.map(c => `
+        <div class="wf-row">
+          <div class="wf-lbl">${escapeHtml(catLabel(c.cat))}</div>
+          <div class="wf-bw"><div class="wf-bf" style="width:${c.avg}%"></div></div>
+          <div class="wf-val">${c.avg}</div>
+        </div>`).join('') : '<div class="muted">Henüz veri yok.</div>'}
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">Son denemeler</span></div>
+      ${rows ? `<table><thead><tr><th>Tarih</th><th>Kategori</th><th>Metin</th><th>Skor</th></tr></thead><tbody>${rows}</tbody></table>` : '<div class="muted">Henüz pratik yapılmadı.</div>'}
+    </div>
+
+    <div class="actions"><button class="ab2" onclick="resetStats()">Verileri Sıfırla</button></div>
+  `;
+}
+
+// ── RENDER: AYARLAR ──
+function setAccent(v){ settings.accent = v; save(); renderAyarlar(); }
+function setVoice(v){ settings.voiceURI = v; save(); }
+function onRateInput(v){
+  settings.rate = parseFloat(v);
+  const el = document.getElementById('rate-val');
+  if(el) el.textContent = v;
+}
+function onRateChange(v){ settings.rate = parseFloat(v); save(); }
+function renderAyarlar(){
+  const accents = [
+    {v:'en-US', l:'Amerikan İngilizcesi (en-US)'},
+    {v:'en-GB', l:'İngiliz İngilizcesi (en-GB)'},
+    {v:'en-AU', l:'Avustralya İngilizcesi (en-AU)'},
+    {v:'en-IN', l:'Hint İngilizcesi (en-IN)'},
+  ];
+  const accentOpts = accents.map(a => `<option value="${a.v}" ${accentLang()===a.v?'selected':''}>${a.l}</option>`).join('');
+
+  let voiceBlock;
+  if(!('speechSynthesis' in window)){
+    voiceBlock = '<div class="muted">Tarayıcınız sesli okuma (speech synthesis) özelliğini desteklemiyor.</div>';
+  } else if(voices.length===0){
+    voiceBlock = `<div class="muted">Sesler yükleniyor… Bulunamazsa birkaç saniye sonra tekrar dene.</div>
+      <div class="actions"><button class="ab2" onclick="refreshVoices();renderAyarlar()">Yenile</button></div>`;
+  } else {
+    const voiceOpts = ['<option value="">Otomatik (en iyi eşleşen ses)</option>']
+      .concat(voices.map(v => `<option value="${v.voiceURI}" ${settings.voiceURI===v.voiceURI?'selected':''}>${escapeHtml(v.name)} — ${v.lang}</option>`)).join('');
+    voiceBlock = `<select onchange="setVoice(this.value)" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:7px">${voiceOpts}</select>
+      <div class="muted" style="margin-top:6px">İşletim sisteminde "Natural"/"Online"/"Neural" etiketli sesler varsa (Edge/Chrome), en doğal sonucu bunlar verir.</div>`;
+  }
+
+  document.getElementById('s-ayarlar').innerHTML = `
+    <div class="card">
+      <div class="ct" style="margin-bottom:14px">Ses & Tanıma Ayarları</div>
+
+      <div class="field-row">
+        <div class="field-lbl">Aksan / Mikrofon dili</div>
+        <select onchange="setAccent(this.value)" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:7px">${accentOpts}</select>
+      </div>
+
+      <div class="field-row">
+        <div class="field-lbl">Geri bildirim sesi</div>
+        ${voiceBlock}
+      </div>
+
+      <div class="field-row">
+        <div class="field-lbl">Konuşma hızı <span class="rate-val" id="rate-val">${settings.rate}</span></div>
+        <input type="range" min="0.6" max="1.3" step="0.05" value="${settings.rate}" style="width:100%" oninput="onRateInput(this.value)" onchange="onRateChange(this.value)">
+      </div>
+
+      <div class="actions"><button class="ab" onclick="speak('Hello! This is a test of the selected voice. I hope it sounds clear and natural.')">🔊 Test Et</button></div>
+    </div>
+
+    <div class="card">
+      <div class="ct" style="margin-bottom:10px">Tarayıcı Desteği</div>
+      <div class="status-line">🎤 Konuşma tanıma (mikrofon): ${micSupported() ? '✅ Destekleniyor' : '❌ Desteklenmiyor'}</div>
+      <div class="status-line">🔊 Sesli okuma: ${('speechSynthesis' in window) ? '✅ Destekleniyor' : '❌ Desteklenmiyor'}</div>
+      <div class="muted">En iyi deneyim için bilgisayarda Google Chrome veya Microsoft Edge kullanılması önerilir.</div>
+    </div>
+  `;
+}
+
+// ── Başlangıç ──
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = refreshVoices; refreshVoices(); }
+if(!micSupported()){
+  document.getElementById('banner').innerHTML = `<div class="warn-banner">🎤 Tarayıcınız gerçek zamanlı konuşma tanımayı desteklemiyor. En iyi deneyim için bilgisayarda <b>Google Chrome</b> veya <b>Microsoft Edge</b> kullanmanızı öneririz. Dinleme (seslendirme) özellikleri yine de çalışır.</div>`;
+}
+renderCurrent();
+</script>
+</body>
+</html>
