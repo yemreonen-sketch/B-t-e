@@ -137,27 +137,52 @@ select,input[type=range]{font-size:12.5px}
 .field-lbl{font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:600}
 .rate-val{font-size:12.5px;color:var(--text);font-weight:700;margin-left:8px;font-variant-numeric:tabular-nums}
 .status-line{font-size:12.5px;margin-bottom:6px;color:var(--text)}
+
+.hero-card{background:linear-gradient(165deg,var(--surface) 0%,var(--surface-alt) 100%)}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.hero-greet{font-family:'Sora',-apple-system,sans-serif;font-size:17px;font-weight:700}
+.hero-sub{font-size:12.5px;color:var(--text-muted);margin-top:2px}
+.streak-chip{background:var(--badge-ba-bg);color:var(--badge-ba-fg);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.hero-stats{display:flex;gap:22px;flex-wrap:wrap}
+.hero-stat{display:flex;align-items:center;gap:12px}
+.hero-stat-lbl{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.hero-stat-val{font-family:'Sora',-apple-system,sans-serif;font-size:15px;font-weight:700;margin:1px 0}
+
+.mode-switch{display:flex;gap:6px;background:var(--surface-sunken);border:1px solid var(--border);border-radius:9px;padding:4px;margin-bottom:14px}
+.mode-btn{flex:1;padding:8px 10px;font-size:12.5px;font-weight:700;border:none;border-radius:6px;background:none;color:var(--text-muted);cursor:pointer}
+.mode-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+
+.gauge-row{display:flex;align-items:center;gap:12px}
+.tip-box{background:var(--badge-bb-bg);color:var(--badge-bb-fg);border-radius:8px;padding:8px 10px;font-size:12px;margin-top:6px;line-height:1.5}
+.xp-toast{display:inline-flex;align-items:center;gap:4px;background:var(--badge-bg-bg);color:var(--badge-bg-fg);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700}
+
+.chat-wrap{display:flex;flex-direction:column}
+.chat-log{max-height:420px;overflow-y:auto;padding-right:2px;margin-bottom:10px}
+.chat-input-row{display:flex;gap:8px;align-items:center;justify-content:center;padding-top:6px;border-top:1px solid var(--border-soft)}
+.turn-counter{font-size:11.5px;color:var(--text-muted);text-align:center;margin-bottom:8px}
 </style>
 </head>
 <body>
 <div class="app">
   <h1>🗣️ İngilizce Konuşma Pratiği</h1>
-  <div class="subtitle">Sesli pratik yap, telaffuzunu tarayıcının konuşma tanıma özelliğiyle anında kontrol et, doğal bir sesle geri bildirim al.</div>
+  <div class="subtitle">Konuşma partnerinle sesli pratik yap, telaffuzunu anında puanla, XP kazanıp seviye atla.</div>
 
   <div id="banner"></div>
 
   <div class="tabs">
-    <button class="tab active" onclick="sw('pratik')">🗣️ Pratik</button>
-    <button class="tab" onclick="sw('diyalog')">💬 Diyalog</button>
+    <button class="tab active" onclick="sw('anasayfa')">🏠 Anasayfa</button>
+    <button class="tab" onclick="sw('dersler')">🎯 Dersler</button>
+    <button class="tab" onclick="sw('konusma')">🗨️ Konuşma</button>
     <button class="tab" onclick="sw('serbest')">✍️ Serbest</button>
-    <button class="tab" onclick="sw('istatistik')">📈 İstatistik</button>
+    <button class="tab" onclick="sw('ilerleme')">📈 İlerleme</button>
     <button class="tab" onclick="sw('ayarlar')">⚙️ Ayarlar</button>
   </div>
 
-  <div id="s-pratik" class="sec active"></div>
-  <div id="s-diyalog" class="sec"></div>
+  <div id="s-anasayfa" class="sec active"></div>
+  <div id="s-dersler" class="sec"></div>
+  <div id="s-konusma" class="sec"></div>
   <div id="s-serbest" class="sec"></div>
-  <div id="s-istatistik" class="sec"></div>
+  <div id="s-ilerleme" class="sec"></div>
   <div id="s-ayarlar" class="sec"></div>
 </div>
 
@@ -257,8 +282,48 @@ const DIALOGUES = [
 DIALOGUES[2].lines = DIALOGUES[2].lines.filter(l => !(l.speaker==='app2'));
 
 // ── Durum / kalıcı depolama ──
-const STORAGE_KEY = 'ing_pratik_v1';
-const DEFAULT_STATE = { attempts:[], bestScores:{}, dialogProgress:{}, settings:{voiceURI:'', accent:'en-US', rate:0.95} };
+const STORAGE_KEY = 'ing_pratik_v2';
+const DEFAULT_STATE = { attempts:[], bestScores:{}, dialogProgress:{}, xp:0, dailyLog:{date:'', xp:0}, settings:{voiceURI:'', accent:'en-US', rate:0.95} };
+
+const LEVELS = [
+  {name:'Başlangıç',    min:0},
+  {name:'Temel',        min:150},
+  {name:'Orta',         min:400},
+  {name:'İleri Orta',   min:800},
+  {name:'İleri',        min:1400},
+];
+const DAILY_GOAL_XP = 30;
+const TIPS = [
+  "'th' sesi için dilinin ucunu üst dişlerine hafifçe değdir — Türkçedeki 't' veya 's' ile karıştırma.",
+  "İngilizce 'r' sesi Türkçedeki gibi yuvarlanmaz; dilini damağa değdirmeden, hafif geri çekerek çıkar.",
+  "'w' sesini dudaklarını yuvarlayarak çıkar; Türkçedeki 'v' sesinden farklıdır.",
+  "'-ed' eki kelimeye göre 't', 'd' veya 'ıd' okunur: 'walked' [t], 'played' [d], 'wanted' [ıd].",
+  "'a' ve 'the' gibi kısa kelimeleri vurgusuz ve hızlı söyle; cümlenin akışını yavaşlatma.",
+  "Cümle sonunu düşürmeden, son kelimeyi de ilk kelime kadar net telaffuz et.",
+  "Yeni bir cümleyi önce dinle, sonra gölgeleme (shadowing) yaparak eş zamanlı tekrar et.",
+  "Her gün 10 dakika bile olsa düzenli pratik, haftada bir saatlik tek seferden daha etkilidir.",
+  "Zor bir cümleyi yavaş söyleyip anlaşılır hale getirdikten sonra hızını kademeli artır.",
+  "Konuşurken durakladığın yerlerde 'um' yerine kısa bir nefes vermeyi dene, daha akıcı duyulur.",
+];
+function tipOfDay(){ const day = Math.floor(Date.now()/86400000); return TIPS[day % TIPS.length]; }
+function levelForXp(xp){ let cur = LEVELS[0]; for(const l of LEVELS){ if(xp>=l.min) cur=l; } return cur; }
+function levelIndex(xp){ return LEVELS.indexOf(levelForXp(xp)); }
+function levelProgressPct(xp){
+  const idx = levelIndex(xp), cur = LEVELS[idx], next = LEVELS[idx+1];
+  if(!next) return 100;
+  return Math.round((xp-cur.min)/(next.min-cur.min)*100);
+}
+function todayXp(){
+  const t = new Date().toDateString();
+  return (state.dailyLog && state.dailyLog.date===t) ? state.dailyLog.xp : 0;
+}
+function addXp(n){
+  state.xp = (state.xp||0) + n;
+  const t = new Date().toDateString();
+  if(!state.dailyLog || state.dailyLog.date!==t) state.dailyLog = {date:t, xp:0};
+  state.dailyLog.xp += n;
+}
+function xpForScore(score){ return Math.max(2, Math.round(score/5)); }
 
 function load(){
   try{
@@ -275,9 +340,11 @@ function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
 let state = load();
 let settings = state.settings;
 
-let currentTab = 'pratik';
-const TABS = ['pratik','diyalog','serbest','istatistik','ayarlar'];
+let currentTab = 'anasayfa';
+const TABS = ['anasayfa','dersler','konusma','serbest','ilerleme','ayarlar'];
 let currentDialogueId = null;
+let konusmaMode = 'senaryolar';
+let chatState = {active:false, messages:[], turns:0};
 let filterCat = 'all';
 let filterLevel = 'all';
 let freeText = '';
@@ -297,6 +364,43 @@ function catLabel(slug){
 }
 function scoreBadgeClass(score){ return score>=85 ? 'bg' : score>=60 ? 'ba' : 'br'; }
 function levelBadgeClass(level){ return level==='Başlangıç' ? 'bg' : level==='Orta' ? 'ba' : 'br'; }
+function scoreLabel(score){ return score>=90 ? 'Mükemmel! 🎉' : score>=75 ? 'İyi iş 👍' : score>=60 ? 'Fena değil' : 'Tekrar dene'; }
+
+// ── SVG halka / gösterge bileşeni ──
+function ringSVG(pct, opts){
+  opts = opts || {};
+  const size = opts.size || 70, stroke = opts.stroke || 6;
+  const color = opts.color || 'var(--accent)', track = opts.track || 'var(--border-soft)';
+  const r = (size/2) - stroke, c = 2*Math.PI*r;
+  const clamped = Math.max(0, Math.min(100, pct));
+  const offset = c * (1 - clamped/100);
+  const cx = size/2, cy = size/2;
+  const centerHtml = (opts.center!==undefined) ? `<text x="${cx}" y="${cy + (opts.centerSize||16)*0.35}" text-anchor="middle" font-size="${opts.centerSize||16}" font-weight="700" fill="var(--text)" font-family="Sora, sans-serif">${escapeHtml(String(opts.center))}</text>` : '';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex-shrink:0">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${track}" stroke-width="${stroke}"></circle>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"></circle>
+    ${centerHtml}
+  </svg>`;
+}
+function scoreGaugeSVG(score, size){
+  size = size || 62;
+  const color = score>=85 ? 'var(--success)' : score>=60 ? 'var(--warning)' : 'var(--danger)';
+  return ringSVG(score, {size, stroke:5, color, center:score, centerSize:Math.round(size*0.26)});
+}
+
+// ── Telaffuz ipuçları (Türkçe konuşanlar için sık hatalar) ──
+const PRON_TIPS = [
+  {test:/\bth/i, tip:"'th' sesi için dilinin ucunu üst dişlerine hafifçe değdir; 't' veya 's' gibi söyleme."},
+  {test:/\bw[a-z]*/i, tip:"'w' sesini dudaklarını yuvarlayarak çıkar; Türkçedeki 'v' ile karıştırma."},
+  {test:/\br[aeiouy]/i, tip:"İngilizce 'r' sesi Türkçedeki gibi yuvarlanmaz; dilini damağa değdirmeden çıkar."},
+  {test:/tion\b/i, tip:"'-tion' eki 'şın' gibi okunur, 'siyon' değil."},
+  {test:/ed\b/i, tip:"'-ed' eki kelimeye göre 't', 'd' veya 'ıd' okunur; tek bir kalıba güvenme."},
+  {test:/[aeiou]{2}/i, tip:"Yan yana sesli harfleri tek bir akışkan sesle birleştir, aralarında durma."},
+];
+function getPronTip(text){
+  for(const t of PRON_TIPS){ if(t.test.test(text)) return t.tip; }
+  return null;
+}
 
 // ── Kelime hizalama / skor (LCS tabanlı) ──
 function normWords(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9' ]+/g,' ').split(/\s+/).filter(Boolean); }
@@ -325,6 +429,61 @@ function keywordScore(spoken, keywords){
   let hit = 0;
   keywords.forEach(k => { if(norm.includes(k.toLowerCase())) hit++; });
   return Math.round(hit/keywords.length*100);
+}
+
+// ── Serbest Sohbet: kural tabanlı niyet (intent) motoru ──
+// Not: Bu bir üretken yapay zekâ değildir — sunucu/API gerektirmeden, tarayıcıda
+// çalışan basit bir niyet eşleştirme (intent matching) sohbet motorudur.
+const CHAT_STARTERS = [
+  "Hi! I'm your English speaking partner. What would you like to talk about today?",
+  "Hello there! Let's have a little chat in English. How has your day been so far?",
+  "Hey! Great to see you here. What's on your mind today?",
+];
+const FALLBACK_RESPONSES = [
+  "That's interesting — can you tell me a bit more about that?",
+  "I see! Why do you think that is?",
+  "Got it. How did that make you feel?",
+  "Interesting! Could you give me an example?",
+  "That makes sense. What happened next?",
+];
+const INTENTS = [
+  {name:'greeting', patterns:[/\b(hi|hello|hey)\b/], responses:["Hello! It's great to talk with you. How are you doing today?","Hey there! How's your day going so far?"]},
+  {name:'feel_good', patterns:[/\b(i'?m|i am)\s+(fine|good|great|okay|ok|well|not bad|pretty good)\b/], responses:["That's great to hear! What have you been up to today?","Awesome! Anything exciting happening in your life lately?"]},
+  {name:'feel_bad', patterns:[/\b(i'?m|i am)\s+(tired|not (so )?good|sad|stressed|busy|sick)\b/], responses:["I'm sorry to hear that. What's been going on?","That sounds tough. Do you want to talk about it?"]},
+  {name:'ask_how_are_you', patterns:[/how are you/, /how('?s| is) it going/], responses:["I'm doing well, thanks for asking! And how has your week been?"]},
+  {name:'weekend', patterns:[/\bweekend\b/], responses:["Weekends are the best! Do you usually relax or stay busy on weekends?","Nice! What do you usually like to do on your days off?"]},
+  {name:'work_study', patterns:[/\b(work|job|study|studying|student|university|school|office)\b/], responses:["That sounds interesting! What do you enjoy most about it?","I see. Is that something you've always wanted to do?"]},
+  {name:'hobby', patterns:[/\b(hobby|hobbies|like to|enjoy|free time)\b/], responses:["That's a great hobby! How did you get into it?","Nice! How often do you get to do that?"]},
+  {name:'food', patterns:[/\b(food|eat|dinner|lunch|breakfast|cook|restaurant)\b/], responses:["Yum! What's your favorite dish?","I love talking about food. What kind of cuisine do you enjoy most?"]},
+  {name:'travel', patterns:[/\b(travel|trip|vacation|visit|country|abroad)\b/], responses:["Traveling is wonderful! Where would you love to go next?","That sounds exciting! What was the most memorable place you've visited?"]},
+  {name:'weather', patterns:[/\b(weather|rain|sunny|cold|hot|snow)\b/], responses:["Weather can really affect the mood of the day! What's it like where you are right now?"]},
+  {name:'agree', patterns:[/^(yes|yeah|yep|sure|of course|exactly|i agree)\b/], responses:["Great, I'm glad we agree! Can you tell me more about that?"]},
+  {name:'disagree', patterns:[/^(no|nope|not really|i don'?t think so|i disagree)\b/], responses:["That's a fair point. What makes you feel that way?"]},
+  {name:'thanks', patterns:[/\bthank(s| you)\b/], responses:["You're very welcome! I'm enjoying our conversation."]},
+  {name:'goodbye', patterns:[/\b(bye|goodbye|see you|talk (to you )?later|gotta go)\b/], responses:["It was great talking with you! Keep practicing, and see you next time. Goodbye!"]},
+  {name:'name', patterns:[/\bmy name is\b|\bi'?m called\b/], responses:["Nice to meet you! It's a pleasure to practice English with you today."]},
+];
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function classifyIntent(text){
+  const t = ' ' + String(text||'').toLowerCase() + ' ';
+  for(const intent of INTENTS){ for(const p of intent.patterns){ if(p.test(t)) return intent; } }
+  return null;
+}
+function freeChatReply(userText){
+  const intent = classifyIntent(userText);
+  return intent ? pickRandom(intent.responses) : pickRandom(FALLBACK_RESPONSES);
+}
+function startFreeChat(){
+  chatState = {active:true, messages:[{speaker:'app', text:pickRandom(CHAT_STARTERS)}], turns:0};
+  speak(chatState.messages[0].text);
+  renderCurrent();
+}
+function endFreeChat(){ chatState = {active:false, messages:[], turns:0}; renderCurrent(); }
+function speakChatMessage(i){ const m = chatState.messages[i]; if(m) speak(m.text); }
+function setKonusmaMode(m){
+  konusmaMode = m;
+  if(m==='sohbet' && !chatState.active) startFreeChat();
+  renderCurrent();
 }
 
 // ── Ses sentezi (native/doğal ses) ──
@@ -420,8 +579,16 @@ function resultBlockHTML(kind, key){
   const r = liveResults[kind+':'+key];
   if(!r) return '';
   const {tHtml, sHtml} = renderDiffHTML(r.align);
+  const score = r.align.score;
+  const tip = score<90 ? getPronTip(r.align.targetWords.join(' ')) : null;
   return `<div class="result-box">
-    <div class="score-row"><span class="bdg ${scoreBadgeClass(r.align.score)}">Skor: ${r.align.score}</span></div>
+    <div class="gauge-row">
+      ${scoreGaugeSVG(score)}
+      <div>
+        <div class="score-row"><span class="bdg ${scoreBadgeClass(score)}">${scoreLabel(score)}</span> <span class="xp-toast">+${xpForScore(score)} XP</span></div>
+        ${tip ? `<div class="tip-box">💡 ${escapeHtml(tip)}</div>` : ''}
+      </div>
+    </div>
     <div class="diff-line"><span class="diff-lbl">Hedef</span><br>${tHtml}</div>
     <div class="diff-line"><span class="diff-lbl">Senin söylediğin</span><br>${sHtml}</div>
   </div>`;
@@ -430,6 +597,7 @@ function resultBlockHTML(kind, key){
 function recordAttempt(obj){
   state.attempts.unshift(Object.assign({ts:Date.now()}, obj));
   if(state.attempts.length>500) state.attempts.length = 500;
+  if(typeof obj.score==='number') addXp(xpForScore(obj.score));
 }
 function updateBest(id, score){
   if(!(id in state.bestScores) || score > state.bestScores[id]) state.bestScores[id] = score;
@@ -459,6 +627,17 @@ function handleTranscript(kind, key, transcript){
     if(!state.dialogProgress[dlgId]) state.dialogProgress[dlgId] = {lineIndex:0, answers:{}};
     state.dialogProgress[dlgId].answers[lineIndex] = {transcript, score};
     recordAttempt({kind:'dialogue', cat:dlgId, text:line.model, score});
+  } else if(kind==='freechat'){
+    if(!transcript){ save(); renderCurrent(); return; }
+    chatState.messages.push({speaker:'user', text:transcript});
+    chatState.turns++;
+    addXp(3);
+    const reply = freeChatReply(transcript);
+    chatState.messages.push({speaker:'app', text:reply});
+    save();
+    renderCurrent();
+    speak(reply);
+    return;
   }
   save();
   renderCurrent();
@@ -473,17 +652,76 @@ function sw(n){
   renderCurrent();
 }
 function renderCurrent(){
-  if(currentTab==='pratik') renderPratik();
-  else if(currentTab==='diyalog') renderDiyalog();
+  if(currentTab==='anasayfa') renderAnasayfa();
+  else if(currentTab==='dersler') renderDersler();
+  else if(currentTab==='konusma') renderKonusma();
   else if(currentTab==='serbest') renderSerbest();
-  else if(currentTab==='istatistik') renderIstatistik();
+  else if(currentTab==='ilerleme') renderIlerleme();
   else if(currentTab==='ayarlar') renderAyarlar();
 }
 
-// ── RENDER: PRATİK ──
-function setFilterCat(v){ filterCat = v; renderPratik(); }
-function setFilterLevel(v){ filterLevel = v; renderPratik(); }
-function renderPratik(){
+// ── RENDER: ANASAYFA ──
+function renderAnasayfa(){
+  const xp = state.xp||0;
+  const lvl = levelForXp(xp);
+  const idx = levelIndex(xp);
+  const next = LEVELS[idx+1];
+  const streak = computeStreak();
+  const tXp = todayXp();
+  const goalPct = Math.min(100, Math.round(tXp/DAILY_GOAL_XP*100));
+  const hour = new Date().getHours();
+  const greeting = hour<12 ? 'Günaydın' : hour<18 ? 'İyi günler' : 'İyi akşamlar';
+
+  document.getElementById('s-anasayfa').innerHTML = `
+    <div class="card hero-card">
+      <div class="hero-top">
+        <div>
+          <div class="hero-greet">${greeting} 👋</div>
+          <div class="hero-sub">Bugün İngilizce konuşma pratiğine devam edelim.</div>
+        </div>
+        <div class="streak-chip">🔥 ${streak} gün</div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          ${ringSVG(levelProgressPct(xp), {size:66, stroke:6, color:'var(--accent)', center:'⭐', centerSize:22})}
+          <div>
+            <div class="hero-stat-lbl">Seviye</div>
+            <div class="hero-stat-val">${lvl.name}</div>
+            <div class="muted">${next ? `${next.min-xp} XP sonra ${next.name}` : 'En üst seviyedesin!'}</div>
+          </div>
+        </div>
+        <div class="hero-stat">
+          ${ringSVG(goalPct, {size:66, stroke:6, color:'var(--success)', center:tXp, centerSize:16})}
+          <div>
+            <div class="hero-stat-lbl">Günlük hedef</div>
+            <div class="hero-stat-val">${tXp} / ${DAILY_GOAL_XP} XP</div>
+            <div class="muted">${goalPct>=100 ? 'Hedef tamamlandı 🎉' : 'Devam et!'}</div>
+          </div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px">
+        <button class="ab" onclick="sw('dersler')">🎯 Bugün Pratik Yap</button>
+        <button class="ab2" onclick="sw('konusma')">🗨️ Konuşma Partneriyle Konuş</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">💡 Günün İpucu</span></div>
+      <div class="muted">${escapeHtml(tipOfDay())}</div>
+    </div>
+
+    <div class="mg">
+      <div class="mc"><label>Toplam XP</label><div class="v">${xp}</div></div>
+      <div class="mc"><label>Toplam Deneme</label><div class="v">${state.attempts.length}</div></div>
+      <div class="mc"><label>Pratik Serisi</label><div class="v">${streak} gün</div></div>
+    </div>
+  `;
+}
+
+// ── RENDER: DERSLER ──
+function setFilterCat(v){ filterCat = v; renderDersler(); }
+function setFilterLevel(v){ filterLevel = v; renderDersler(); }
+function renderDersler(){
   const catOpts = ['<option value="all">Tüm kategoriler</option>']
     .concat(CATEGORIES.map(c => `<option value="${c.slug}" ${filterCat===c.slug?'selected':''}>${c.label}</option>`)).join('');
   const levels = ['Başlangıç','Orta','İleri'];
@@ -518,7 +756,7 @@ function renderPratik(){
     </div>`;
   }).join('');
 
-  document.getElementById('s-pratik').innerHTML = `
+  document.getElementById('s-dersler').innerHTML = `
     <div class="filters">
       <select onchange="setFilterCat(this.value)">${catOpts}</select>
       <select onchange="setFilterLevel(this.value)">${lvlOpts}</select>
@@ -527,7 +765,7 @@ function renderPratik(){
   `;
 }
 
-// ── RENDER: DİYALOG ──
+// ── RENDER: KONUŞMA (Senaryolar + Serbest Sohbet) ──
 function openDialogue(id){
   currentDialogueId = id;
   if(!state.dialogProgress[id]) state.dialogProgress[id] = {lineIndex:0, answers:{}};
@@ -559,7 +797,7 @@ function restartDialogue(id){
   maybeSpeakCurrentDialogueLine();
   renderCurrent();
 }
-function renderDiyalog(){
+function senaryolarHTML(){
   if(!currentDialogueId){
     const cards = DIALOGUES.map(d => {
       const prog = state.dialogProgress[d.id];
@@ -579,8 +817,7 @@ function renderDiyalog(){
         </div>
       </div>`;
     }).join('');
-    document.getElementById('s-diyalog').innerHTML = cards;
-    return;
+    return cards;
   }
 
   const d = DIALOGUES.find(x=>x.id===currentDialogueId);
@@ -639,7 +876,7 @@ function renderDiyalog(){
     </div>`;
   }
 
-  document.getElementById('s-diyalog').innerHTML = `
+  return `
     <div class="ch" style="margin-bottom:10px">
       <button class="ab2" onclick="backToDialogueList()">← Geri</button>
       <span class="bdg ${levelBadgeClass(d.level)}">${d.level}</span>
@@ -648,6 +885,43 @@ function renderDiyalog(){
     ${history}
     ${current}
   `;
+}
+
+function sohbetHTML(){
+  if(!chatState.active) startFreeChat();
+  const log = chatState.messages.map((m,i) => {
+    if(m.speaker==='app'){
+      const isLast = i===chatState.messages.length-1;
+      return `<div class="bubble app${isLast?' current':''}">
+        <div class="bubble-role">🤖 Konuşma Partneri</div>
+        <div class="bubble-text">${escapeHtml(m.text)}</div>
+        ${isLast ? `<div class="actions" style="margin-top:6px"><button class="ab2" onclick="speakChatMessage(${i})">🔊 Tekrar Dinle</button></div>` : ''}
+      </div>`;
+    }
+    return `<div class="bubble user"><div class="bubble-role">Sen</div><div class="bubble-text">${escapeHtml(m.text)}</div></div>`;
+  }).join('');
+
+  return `
+    <div class="card chat-wrap">
+      <div class="ch">
+        <span class="ct">💬 Serbest Sohbet</span>
+        <button class="ab2" onclick="endFreeChat();startFreeChat()">🔄 Yeni Sohbet</button>
+      </div>
+      <div class="muted" style="margin-bottom:10px">Mikrofona konuş, partnerin niyetini anlayıp doğal bir cevap versin. Sohbeti istediğin an sürdürebilirsin — bu, kural tabanlı bir pratik motorudur.</div>
+      <div class="turn-counter">${chatState.turns} tur • bu oturumda kazanılan XP: ${chatState.turns*3}</div>
+      <div class="chat-log">${log}</div>
+      ${errorMsgs['freechat:live'] ? `<div class="err-msg">⚠️ ${escapeHtml(errorMsgs['freechat:live'])}</div>` : ''}
+      <div class="chat-input-row">${micButtonHTML('freechat','live')}</div>
+    </div>
+  `;
+}
+
+function renderKonusma(){
+  const modeBar = `<div class="mode-switch">
+    <button class="mode-btn ${konusmaMode==='senaryolar'?'active':''}" onclick="setKonusmaMode('senaryolar')">📋 Senaryolar</button>
+    <button class="mode-btn ${konusmaMode==='sohbet'?'active':''}" onclick="setKonusmaMode('sohbet')">💬 Serbest Sohbet</button>
+  </div>`;
+  document.getElementById('s-konusma').innerHTML = modeBar + (konusmaMode==='senaryolar' ? senaryolarHTML() : sohbetHTML());
 }
 
 // ── RENDER: SERBEST ──
@@ -683,15 +957,18 @@ function computeStreak(){
   return streak;
 }
 function resetStats(){
-  if(!confirm('Tüm ilerleme ve istatistikler silinecek. Emin misin?')) return;
+  if(!confirm('Tüm ilerleme, XP ve istatistikler silinecek. Emin misin?')) return;
   state.attempts = []; state.bestScores = {}; state.dialogProgress = {};
+  state.xp = 0; state.dailyLog = {date:'', xp:0};
   save(); renderCurrent();
 }
-function renderIstatistik(){
+function renderIlerleme(){
   const attempts = state.attempts;
   const total = attempts.length;
   const avg = total ? Math.round(attempts.reduce((s,a)=>s+a.score,0)/total) : 0;
   const streak = computeStreak();
+  const xp = state.xp||0;
+  const lvl = levelForXp(xp);
 
   const byCat = {};
   attempts.forEach(a => { (byCat[a.cat] = byCat[a.cat] || []).push(a.score); });
@@ -711,8 +988,10 @@ function renderIstatistik(){
     </tr>`;
   }).join('');
 
-  document.getElementById('s-istatistik').innerHTML = `
+  document.getElementById('s-ilerleme').innerHTML = `
     <div class="mg">
+      <div class="mc"><label>Seviye</label><div class="v">${lvl.name}</div></div>
+      <div class="mc"><label>Toplam XP</label><div class="v">${xp}</div></div>
       <div class="mc"><label>Toplam Deneme</label><div class="v">${total}</div></div>
       <div class="mc"><label>Ortalama Skor</label><div class="v">${avg}</div></div>
       <div class="mc"><label>Pratik Serisi</label><div class="v">${streak} gün</div></div>
