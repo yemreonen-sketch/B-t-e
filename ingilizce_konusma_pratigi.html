@@ -160,6 +160,21 @@ select,input[type=range]{font-size:12.5px}
 .chat-log{max-height:420px;overflow-y:auto;padding-right:2px;margin-bottom:10px}
 .chat-input-row{display:flex;gap:8px;align-items:center;justify-content:center;padding-top:6px;border-top:1px solid var(--border-soft)}
 .turn-counter{font-size:11.5px;color:var(--text-muted);text-align:center;margin-bottom:8px}
+
+.vocab-tr{font-size:15px;font-weight:700;color:var(--text);margin-top:6px}
+.vocab-ex{font-size:12.5px;color:var(--text-muted);font-style:italic;margin-top:4px}
+
+.vocab-inline{color:var(--accent);font-weight:700}
+.quiz-q{margin-bottom:16px}
+.quiz-q:last-child{margin-bottom:0}
+.quiz-q-text{font-size:13.5px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.quiz-opts{display:flex;flex-direction:column;gap:6px}
+.quiz-opt{text-align:left;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer}
+.quiz-opt:hover{background:var(--surface-alt)}
+.quiz-opt.selected{border-color:var(--accent);background:var(--badge-bb-bg)}
+.quiz-opt.correct{border-color:var(--success);background:var(--badge-bg-bg);color:var(--badge-bg-fg);font-weight:700}
+.quiz-opt.wrong{border-color:var(--danger);background:var(--badge-br-bg);color:var(--badge-br-fg)}
+.quiz-opt[disabled]{cursor:default}
 </style>
 </head>
 <body>
@@ -173,6 +188,8 @@ select,input[type=range]{font-size:12.5px}
     <button class="tab active" onclick="sw('anasayfa')">🏠 Anasayfa</button>
     <button class="tab" onclick="sw('dersler')">🎯 Dersler</button>
     <button class="tab" onclick="sw('konusma')">🗨️ Konuşma</button>
+    <button class="tab" onclick="sw('kelimeler')">🗂️ Kelimeler</button>
+    <button class="tab" onclick="sw('haber')">📰 Haber</button>
     <button class="tab" onclick="sw('serbest')">✍️ Serbest</button>
     <button class="tab" onclick="sw('ilerleme')">📈 İlerleme</button>
     <button class="tab" onclick="sw('ayarlar')">⚙️ Ayarlar</button>
@@ -181,6 +198,8 @@ select,input[type=range]{font-size:12.5px}
   <div id="s-anasayfa" class="sec active"></div>
   <div id="s-dersler" class="sec"></div>
   <div id="s-konusma" class="sec"></div>
+  <div id="s-kelimeler" class="sec"></div>
+  <div id="s-haber" class="sec"></div>
   <div id="s-serbest" class="sec"></div>
   <div id="s-ilerleme" class="sec"></div>
   <div id="s-ayarlar" class="sec"></div>
@@ -304,9 +323,120 @@ const DIALOGUES = [
   },
 ];
 
+// ── Veri: iş İngilizcesi kelime kartları ──
+const VOCAB_CATEGORIES = [
+  {slug:'sunum',    label:'Sunum Dili'},
+  {slug:'toplanti', label:'Toplantı Dili'},
+  {slug:'baglac',   label:'Geçiş & Bağlaç İfadeleri'},
+  {slug:'proje',    label:'Proje Yönetimi'},
+  {slug:'enerji',   label:'Enerji Yönetimi'},
+];
+function vocabCatLabel(slug){ const c = VOCAB_CATEGORIES.find(x=>x.slug===slug); return c ? c.label : slug; }
+
+const VOCAB = [
+  {id:1,  cat:'sunum', term:'Demonstrate', tr:'göstermek, kanıtlamak', example:"Let me demonstrate how this feature works in practice."},
+  {id:2,  cat:'sunum', term:'To illustrate', tr:'göstermek için, örneklemek için', example:"To illustrate this point, let's look at last year's results."},
+  {id:3,  cat:'sunum', term:'Pinpoint', tr:'tam olarak tespit etmek', example:"Our analysis helped us pinpoint the exact cause of the delay."},
+  {id:4,  cat:'sunum', term:'To elaborate on', tr:'ayrıntılandırmak', example:"Could you elaborate on that a little more?"},
+  {id:5,  cat:'sunum', term:'Underscore', tr:'altını çizmek, vurgulamak', example:"I want to underscore how important this deadline is."},
+  {id:6,  cat:'sunum', term:'In essence', tr:'özünde, temelde', example:"In essence, we need to reduce costs without losing quality."},
+  {id:7,  cat:'sunum', term:'In conclusion', tr:'sonuç olarak (sadece kapanışta)', example:"In conclusion, this project is on track and within budget."},
+
+  {id:8,  cat:'toplanti', term:'As I was saying', tr:'dediğim gibi', example:"As I was saying, we need to finalize the budget by Friday."},
+  {id:9,  cat:'toplanti', term:'Agenda', tr:'gündem', example:"Let's go through today's agenda before we start."},
+  {id:10, cat:'toplanti', term:'Action item', tr:'eylem maddesi', example:"The first action item is to contact the supplier."},
+  {id:11, cat:'toplanti', term:'Follow up', tr:'takip etmek', example:"I'll follow up with the client after this call."},
+  {id:12, cat:'toplanti', term:'To reschedule', tr:'yeniden planlamak', example:"Can we reschedule the meeting to next Tuesday?"},
+  {id:13, cat:'toplanti', term:'Stakeholder', tr:'paydaş', example:"We need sign-off from all key stakeholders."},
+  {id:14, cat:'toplanti', term:'Minutes', tr:'toplantı tutanağı', example:"I'll send out the meeting minutes by end of day."},
+
+  {id:15, cat:'baglac', term:'Furthermore', tr:'dahası, üstelik', example:"Furthermore, the new process saves us two hours a week."},
+  {id:16, cat:'baglac', term:'Consequently', tr:'dolayısıyla, bu nedenle', example:"The supplier was late; consequently, production was delayed."},
+  {id:17, cat:'baglac', term:'Whereas', tr:'oysa, -iken', example:"Last quarter we grew by five percent, whereas this quarter we grew by ten."},
+  {id:18, cat:'baglac', term:'As long as', tr:'olduğu sürece', example:"We can hit the deadline, as long as we get approval today."},
+  {id:19, cat:'baglac', term:'Regardless of', tr:'...ne olursa olsun', example:"We need to deliver on time, regardless of the challenges."},
+  {id:20, cat:'baglac', term:'Nevertheless', tr:'buna rağmen, yine de', example:"The budget was tight; nevertheless, we completed the project."},
+
+  {id:21, cat:'proje', term:'Tackle', tr:'ele almak, üstesinden gelmek', example:"Let's tackle the biggest risk first."},
+  {id:22, cat:'proje', term:'Replicable', tr:'uygulanabilir, çoğaltılabilir', example:"This process needs to be replicable across all teams."},
+  {id:23, cat:'proje', term:'Tangible', tr:'somut, elle tutulur', example:"We're looking for tangible results by the end of the quarter."},
+  {id:24, cat:'proje', term:'Milestone', tr:'kilometre taşı', example:"Reaching the prototype stage is our next milestone."},
+  {id:25, cat:'proje', term:'Deliverable', tr:'teslim edilecek çıktı', example:"The final deliverable is due next Friday."},
+  {id:26, cat:'proje', term:'Scope', tr:'kapsam', example:"That request is outside the scope of this project."},
+  {id:27, cat:'proje', term:'Deadline', tr:'son tarih', example:"We can't miss this deadline, it's critical for the client."},
+
+  {id:28, cat:'enerji', term:'Yield', tr:'getiri sağlamak, sonuç vermek', example:"The new equipment should yield significant energy savings."},
+  {id:29, cat:'enerji', term:'Leverage', tr:'yararlanmak, kullanmak', example:"We can leverage renewable sources to cut our costs."},
+  {id:30, cat:'enerji', term:'Replicate', tr:'yaygınlaştırmak, uygulamak', example:"We plan to replicate this energy program at every site."},
+  {id:31, cat:'enerji', term:'Energy efficiency', tr:'enerji verimliliği', example:"Improving energy efficiency is one of our top priorities."},
+  {id:32, cat:'enerji', term:'Sustainability', tr:'sürdürülebilirlik', example:"Sustainability is now part of every project proposal."},
+  {id:33, cat:'enerji', term:'Carbon footprint', tr:'karbon ayak izi', example:"We're working to reduce our carbon footprint by 2030."},
+  {id:34, cat:'enerji', term:'Renewable energy', tr:'yenilenebilir enerji', example:"The factory now runs mostly on renewable energy."},
+  {id:35, cat:'enerji', term:'Consumption', tr:'tüketim', example:"We measured a fifteen percent drop in energy consumption."},
+];
+
+// ── Veri: Günlük Haber makaleleri (business English okuma pratiği) ──
+const ARTICLES = [
+  {
+    id:'remote-work', title:'Remote Work Is Here to Stay',
+    body:"Many companies are keeping remote and hybrid work options, even as offices reopen. A recent survey found that most employees now expect some flexibility in where they work. Companies that offer remote options report higher retention and often see productivity remain stable or even improve. However, some managers still worry about collaboration and company culture. To tackle this, many businesses now schedule regular in-person meetings and team events to keep employees connected. Experts believe that a hybrid model, combining remote and office work, will likely become the standard for most industries in the coming years.",
+    vocab:[{term:'Retention', tr:'çalışan tutma, elde tutma'}, {term:'Hybrid', tr:'karma, hibrit'}, {term:'Flexibility', tr:'esneklik'}, {term:'Collaboration', tr:'iş birliği'}],
+    comprehension:[
+      {q:'What do most employees expect, according to the survey?', options:['Higher salaries','Flexibility in where they work','Shorter working hours','More vacation days'], correct:1},
+      {q:'What do companies do to improve collaboration in a hybrid model?', options:['They ban remote work','They reduce meetings','They schedule in-person meetings and events','They hire more managers'], correct:2},
+      {q:'What do experts believe will become standard?', options:['Fully remote work only','Fully in-office work only','A hybrid model','A four-day work week'], correct:2},
+    ],
+    discussion:["Do you prefer working remotely, in the office, or a hybrid model? Why?", "What do you think companies can do to build a strong culture with remote teams?"],
+  },
+  {
+    id:'renewable-energy', title:'Companies Embrace Renewable Energy',
+    body:"More companies are investing in renewable energy to reduce costs and meet sustainability goals. Solar panels and wind power are becoming common choices for large manufacturers, especially as energy prices remain unpredictable. Businesses that leverage renewable sources often see long-term savings, even though the initial investment can be high. Governments in many countries now offer incentives to companies that reduce their carbon footprint. Some organizations have set ambitious targets, aiming to run entirely on clean energy within the next decade. Analysts say this shift is no longer just about image — it is becoming a real competitive advantage in the global market.",
+    vocab:[{term:'Renewable', tr:'yenilenebilir'}, {term:'Incentive', tr:'teşvik'}, {term:'Ambitious', tr:'iddialı, hırslı'}, {term:'Competitive advantage', tr:'rekabet avantajı'}],
+    comprehension:[
+      {q:'Why are companies investing in renewable energy?', options:['To increase paperwork','To reduce costs and meet sustainability goals','To avoid hiring new staff','To reduce office space'], correct:1},
+      {q:'What do governments offer to companies that reduce their carbon footprint?', options:['Fines','Incentives','Extra taxes','Nothing'], correct:1},
+      {q:'According to analysts, what has renewable energy become?', options:['A legal requirement only','A competitive advantage','A temporary trend','Too expensive to matter'], correct:1},
+    ],
+    discussion:["What renewable energy sources are common in your country?", "Do you think your workplace could become more sustainable? How?"],
+  },
+  {
+    id:'ai-workplace', title:'The Rise of AI in the Workplace',
+    body:"Artificial intelligence is changing how people work, from automating repetitive tasks to helping teams analyze large amounts of data. Many employees now use AI tools daily to draft emails, summarize reports, or even prepare presentations. Supporters say AI can free up time for more creative and strategic work. Critics, however, are concerned about job security and the need for new skills. Companies are responding by offering training programs to help employees adapt. In essence, the workplace of the future will likely combine human judgment with AI support, rather than replacing people entirely. Employees who learn to leverage these tools effectively may have a real advantage.",
+    vocab:[{term:'Automate', tr:'otomatikleştirmek'}, {term:'Strategic', tr:'stratejik'}, {term:'Job security', tr:'iş güvencesi'}, {term:'Adapt', tr:'uyum sağlamak'}],
+    comprehension:[
+      {q:'What are employees using AI tools for?', options:['Only for entertainment','Drafting emails and summarizing reports','Replacing all meetings','Deleting old files'], correct:1},
+      {q:'What are critics concerned about?', options:['Too much creativity','Job security and new skills','Too many holidays','Office design'], correct:1},
+      {q:'What do companies do to help employees adapt?', options:['Nothing','Offer training programs','Reduce salaries','Remove AI tools'], correct:1},
+    ],
+    discussion:["How do you currently use (or could use) AI tools in your work or studies?", "Do you think AI will replace certain jobs? Why or why not?"],
+  },
+  {
+    id:'effective-meetings', title:'How to Run Effective Meetings',
+    body:"Poorly run meetings waste time and reduce productivity across teams. Experts recommend starting every meeting with a clear agenda so participants know what to expect. Assigning a specific action item to each task, along with a deadline, helps ensure follow up actually happens. Meetings should also have a clear purpose — if a quick email or message can replace it, it probably should. Furthermore, keeping meetings short and inviting only essential stakeholders can significantly improve focus. In conclusion, the goal is not to have fewer meetings for the sake of it, but to make every meeting count and drive real progress.",
+    vocab:[{term:'Agenda', tr:'gündem'}, {term:'Action item', tr:'eylem maddesi'}, {term:'Stakeholders', tr:'paydaşlar'}, {term:'Productivity', tr:'verimlilik'}],
+    comprehension:[
+      {q:'What should every meeting start with?', options:['A joke','A clear agenda','A long introduction','Snacks'], correct:1},
+      {q:'What helps ensure follow up happens?', options:['Longer meetings','Assigning action items with deadlines','Inviting everyone in the company','Cancelling the meeting'], correct:1},
+      {q:'What is the main goal, according to the article?', options:['Having zero meetings','Making every meeting count','Making meetings longer','Avoiding agendas'], correct:1},
+    ],
+    discussion:["What makes a meeting effective or ineffective, in your experience?", "How do you usually follow up on action items after a meeting?"],
+  },
+  {
+    id:'sustainability-priority', title:'Sustainability Becomes a Business Priority',
+    body:"Sustainability is no longer a side project for many companies — it has become a core part of business strategy. Customers increasingly prefer brands that demonstrate real commitment to reducing waste and emissions. As a result, businesses are rethinking their supply chains, packaging, and even office practices. Some companies have started measuring the tangible impact of their sustainability efforts, rather than relying on vague promises. Regardless of company size, experts say that even small, consistent changes can yield meaningful results over time. Nevertheless, challenges remain, as sustainable practices can require significant upfront investment before the benefits become clear.",
+    vocab:[{term:'Emissions', tr:'emisyonlar, salımlar'}, {term:'Supply chain', tr:'tedarik zinciri'}, {term:'Tangible', tr:'somut'}, {term:'Upfront investment', tr:'ön yatırım'}],
+    comprehension:[
+      {q:'What do customers increasingly prefer?', options:['Cheaper products only','Brands committed to reducing waste and emissions','Brands with more advertising','Faster delivery only'], correct:1},
+      {q:'What are some companies measuring now?', options:['Employee height','The tangible impact of sustainability efforts','Office temperature','Nothing new'], correct:1},
+      {q:'What challenge does the article mention?', options:['Too many employees','Significant upfront investment','Too much competition','Lack of customers'], correct:1},
+    ],
+    discussion:["What sustainable practices have you noticed in your workplace or daily life?", "Do you think small changes can really make a difference? Why or why not?"],
+  },
+];
+
 // ── Durum / kalıcı depolama ──
 const STORAGE_KEY = 'ing_pratik_v2';
-const DEFAULT_STATE = { attempts:[], bestScores:{}, dialogProgress:{}, xp:0, dailyLog:{date:'', xp:0}, settings:{voiceURI:'', accent:'en-US', rate:0.95, apiKey:'', aiModel:'claude-haiku-4-5-20251001'} };
+const DEFAULT_STATE = { attempts:[], bestScores:{}, dialogProgress:{}, vocabProgress:{}, discussionAnswered:{}, dailyNewsCache:null, xp:0, dailyLog:{date:'', xp:0}, settings:{voiceURI:'', accent:'en-US', rate:0.95, apiKey:'', aiModel:'claude-haiku-4-5-20251001'} };
 
 const LEVELS = [
   {name:'Başlangıç',    min:0},
@@ -364,12 +494,19 @@ let state = load();
 let settings = state.settings;
 
 let currentTab = 'anasayfa';
-const TABS = ['anasayfa','dersler','konusma','serbest','ilerleme','ayarlar'];
+const TABS = ['anasayfa','dersler','konusma','kelimeler','haber','serbest','ilerleme','ayarlar'];
 let currentDialogueId = null;
 let konusmaMode = 'senaryolar';
 let chatState = {active:false, messages:[], turns:0};
 let filterCat = 'all';
 let filterLevel = 'all';
+let vocabFilterCat = 'all';
+let vocabHideKnown = false;
+let revealedVocab = new Set();
+let currentArticle = null;
+let articleIndex = null;
+let quizAnswers = {};
+let quizChecked = false;
 let freeText = '';
 let liveResults = {};
 let errorMsgs = {};
@@ -382,6 +519,8 @@ function catLabel(slug){
   const c = CATEGORIES.find(x=>x.slug===slug);
   if(c) return c.label;
   if(slug==='serbest') return 'Serbest Pratik';
+  const v = VOCAB_CATEGORIES.find(x=>x.slug===slug);
+  if(v) return v.label;
   const d = DIALOGUES.find(x=>x.id===slug);
   return d ? d.title : slug;
 }
@@ -495,6 +634,33 @@ async function testApiConnection(){
   }finally{
     if(btn){ btn.disabled = false; btn.textContent = '🔌 Bağlantıyı Test Et'; }
     renderAyarlar();
+  }
+}
+
+const NEWS_SYSTEM_PROMPT = "You write short business-English news articles for intermediate-to-advanced English learners practicing Business English (topics: workplace, management, project management, energy/sustainability, technology, meetings, presentations). Reply with STRICT JSON only — no markdown fences, no commentary — matching exactly this shape: {\"title\":string, \"body\":string (140-180 words, natural news-article style, third person), \"vocab\":[{\"term\":string,\"tr\":string}] (exactly 4 items, tr = Turkish translation, terms must appear in body), \"comprehension\":[{\"q\":string,\"options\":[string,string,string,string],\"correct\":number}] (exactly 3 items, correct = 0-based index of the right option), \"discussion\":[string,string] (exactly 2 open-ended discussion questions)}. Pick a fresh, varied topic each time — do not repeat previous topics in this conversation.";
+async function generateAiArticle(){
+  if(!aiEnabled()){ cycleArticle(); renderCurrent(); return; }
+  const btn = document.getElementById('news-gen-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Üretiliyor…'; }
+  try{
+    const raw = await callClaudeAPI([{role:'user', content:'Generate one new article now.'}], NEWS_SYSTEM_PROMPT, 800);
+    const cleaned = raw.trim().replace(/^```(json)?\s*/i, '').replace(/```\s*$/, '');
+    const parsed = JSON.parse(cleaned);
+    if(!parsed.title || !parsed.body || !Array.isArray(parsed.vocab) || !Array.isArray(parsed.comprehension) || !Array.isArray(parsed.discussion)){
+      throw new Error('Beklenmeyen yanıt formatı');
+    }
+    parsed.id = 'ai-' + Date.now();
+    currentArticle = parsed;
+    quizAnswers = {};
+    quizChecked = false;
+    state.dailyNewsCache = {date: new Date().toDateString(), article: parsed};
+    save();
+  }catch(e){
+    alert('Haber üretilemedi (' + e.message + '). Yerel bir haberle devam ediliyor.');
+    cycleArticle();
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '✨ Yeni Haber Üret (AI)'; }
+    renderCurrent();
   }
 }
 
@@ -715,6 +881,17 @@ function handleTranscript(kind, key, transcript){
     if(!state.dialogProgress[dlgId]) state.dialogProgress[dlgId] = {lineIndex:0, answers:{}};
     state.dialogProgress[dlgId].answers[lineIndex] = {transcript, score};
     recordAttempt({kind:'dialogue', cat:dlgId, text:line.model, score});
+  } else if(kind==='vocab'){
+    const w = VOCAB.find(x=>x.id===Number(key));
+    if(!w) return;
+    const align = alignWords(w.term, transcript);
+    liveResults['vocab:'+key] = {transcript, align};
+    recordAttempt({kind:'vocab', cat:w.cat, text:w.term, score:align.score});
+  } else if(kind==='discussion'){
+    liveResults['discussion:'+key] = {transcript};
+    const art = getTodayArticle();
+    const artKey = (art ? art.id : 'x') + ':' + key;
+    if(!state.discussionAnswered[artKey]){ state.discussionAnswered[artKey] = true; addXp(5); }
   } else if(kind==='freechat'){
     if(!transcript){ save(); renderCurrent(); return; }
     chatState.messages.push({speaker:'user', text:transcript});
@@ -743,6 +920,8 @@ function renderCurrent(){
   if(currentTab==='anasayfa') renderAnasayfa();
   else if(currentTab==='dersler') renderDersler();
   else if(currentTab==='konusma') renderKonusma();
+  else if(currentTab==='kelimeler') renderKelimeler();
+  else if(currentTab==='haber') renderHaber();
   else if(currentTab==='serbest') renderSerbest();
   else if(currentTab==='ilerleme') renderIlerleme();
   else if(currentTab==='ayarlar') renderAyarlar();
@@ -790,6 +969,8 @@ function renderAnasayfa(){
       <div class="actions" style="margin-top:14px">
         <button class="ab" onclick="sw('dersler')">🎯 Bugün Pratik Yap</button>
         <button class="ab2" onclick="sw('konusma')">🗨️ Konuşma Partneriyle Konuş</button>
+        <button class="ab2" onclick="sw('kelimeler')">🗂️ Kelime Kartlarını Çalış</button>
+        <button class="ab2" onclick="sw('haber')">📰 Günün Haberini Oku</button>
       </div>
     </div>
 
@@ -800,6 +981,7 @@ function renderAnasayfa(){
 
     <div class="mg">
       <div class="mc"><label>Toplam XP</label><div class="v">${xp}</div></div>
+      <div class="mc"><label>Bilinen Kelime</label><div class="v">${VOCAB.filter(w=>state.vocabProgress[w.id]==='known').length}/${VOCAB.length}</div></div>
       <div class="mc"><label>Toplam Deneme</label><div class="v">${state.attempts.length}</div></div>
       <div class="mc"><label>Pratik Serisi</label><div class="v">${streak} gün</div></div>
     </div>
@@ -1017,6 +1199,193 @@ function renderKonusma(){
     <button class="mode-btn ${konusmaMode==='sohbet'?'active':''}" onclick="setKonusmaMode('sohbet')">💬 Serbest Sohbet</button>
   </div>`;
   document.getElementById('s-konusma').innerHTML = modeBar + (konusmaMode==='senaryolar' ? senaryolarHTML() : sohbetHTML());
+}
+
+// ── RENDER: KELİMELER (kelime kartları) ──
+function setVocabFilterCat(v){ vocabFilterCat = v; renderKelimeler(); }
+function setVocabHideKnown(v){ vocabHideKnown = v; renderKelimeler(); }
+function toggleReveal(id){
+  if(revealedVocab.has(id)) revealedVocab.delete(id); else revealedVocab.add(id);
+  renderKelimeler();
+}
+function speakVocabTerm(id){ const w = VOCAB.find(x=>x.id===id); if(w) speak(w.term); }
+function speakVocabExample(id){ const w = VOCAB.find(x=>x.id===id); if(w) speak(w.example); }
+function setVocabStatus(id, status){
+  const prev = state.vocabProgress[id];
+  state.vocabProgress[id] = status;
+  if(status==='known' && prev!=='known') addXp(5);
+  save();
+  renderKelimeler();
+}
+function renderKelimeler(){
+  const catOpts = ['<option value="all">Tüm konular</option>']
+    .concat(VOCAB_CATEGORIES.map(c => `<option value="${c.slug}" ${vocabFilterCat===c.slug?'selected':''}>${c.label}</option>`)).join('');
+
+  const knownCount = VOCAB.filter(w => state.vocabProgress[w.id]==='known').length;
+  const pct = Math.round(knownCount/VOCAB.length*100);
+
+  const list = VOCAB.filter(w => {
+    if(vocabFilterCat!=='all' && w.cat!==vocabFilterCat) return false;
+    if(vocabHideKnown && state.vocabProgress[w.id]==='known') return false;
+    return true;
+  });
+
+  const cards = list.map(w => {
+    const status = state.vocabProgress[w.id];
+    const statusBadge = status==='known' ? '<span class="bdg bg">✓ Biliyorum</span>' : status==='learning' ? '<span class="bdg ba">Öğreniliyor</span>' : '<span class="bdg bk">Yeni</span>';
+    const revealed = revealedVocab.has(w.id);
+    return `<div class="card">
+      <div class="ch">
+        <span class="ct">${escapeHtml(w.term)}</span>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="bdg bb">${vocabCatLabel(w.cat)}</span>
+          ${statusBadge}
+        </span>
+      </div>
+      ${revealed ? `
+        <div class="vocab-tr">${escapeHtml(w.tr)}</div>
+        <div class="vocab-ex">"${escapeHtml(w.example)}"</div>
+      ` : ''}
+      <div class="actions">
+        <button class="ab2" onclick="toggleReveal(${w.id})">${revealed ? '🙉 Gizle' : '🙈 Türkçesini Göster'}</button>
+        <button class="ab2" onclick="speakVocabTerm(${w.id})">🔊 Kelimeyi Dinle</button>
+        ${revealed ? `<button class="ab2" onclick="speakVocabExample(${w.id})">🔊 Cümleyi Dinle</button>` : ''}
+        ${micButtonHTML('vocab', w.id)}
+      </div>
+      ${resultBlockHTML('vocab', w.id)}
+      ${revealed ? `
+        <div class="actions" style="margin-top:4px">
+          <button class="ab2" onclick="setVocabStatus(${w.id},'learning')">📖 Öğreniyorum</button>
+          <button class="ab" onclick="setVocabStatus(${w.id},'known')">✓ Biliyorum</button>
+        </div>
+      ` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('s-kelimeler').innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct">🗂️ Kelime İlerlemesi</span><span class="bdg bg">${knownCount} / ${VOCAB.length} biliniyor</span></div>
+      <div class="wf-bw" style="height:8px"><div class="wf-bf" style="width:${pct}%"></div></div>
+    </div>
+    <div class="filters">
+      <select onchange="setVocabFilterCat(this.value)">${catOpts}</select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);cursor:pointer">
+        <input type="checkbox" ${vocabHideKnown?'checked':''} onchange="setVocabHideKnown(this.checked)"> Sadece öğrenilecekler
+      </label>
+    </div>
+    ${cards || '<div class="card muted">Bu filtrelerle eşleşen kelime yok — harika, hepsini biliyorsun! 🎉</div>'}
+  `;
+}
+
+// ── RENDER: HABER (günlük iş İngilizcesi okuma pratiği) ──
+function getTodayArticle(){
+  if(currentArticle) return currentArticle;
+  const cached = state.dailyNewsCache;
+  const today = new Date().toDateString();
+  if(cached && cached.date===today && cached.article){
+    currentArticle = cached.article;
+    return currentArticle;
+  }
+  const day = Math.floor(Date.now()/86400000);
+  articleIndex = day % ARTICLES.length;
+  currentArticle = ARTICLES[articleIndex];
+  return currentArticle;
+}
+function cycleArticle(){
+  if(articleIndex===null) articleIndex = 0;
+  articleIndex = (articleIndex+1) % ARTICLES.length;
+  currentArticle = ARTICLES[articleIndex];
+  quizAnswers = {};
+  quizChecked = false;
+  state.dailyNewsCache = null;
+  save();
+}
+function selectQuizAnswer(qi, oi){
+  if(quizChecked) return;
+  quizAnswers[qi] = oi;
+  renderCurrent();
+}
+function checkQuiz(){ quizChecked = true; renderCurrent(); }
+function speakArticleBody(){ const art = getTodayArticle(); speak(art.body); }
+function speakArticleVocab(i){ const art = getTodayArticle(); const v = art.vocab[i]; if(v) speak(v.term); }
+function discussionResultHTML(key){
+  const err = errorMsgs['discussion:'+key];
+  if(err) return `<div class="err-msg">⚠️ ${escapeHtml(err)}</div>`;
+  const r = liveResults['discussion:'+key];
+  if(!r) return '';
+  return `<div class="result-box"><div class="diff-line"><span class="diff-lbl">Cevabın</span><br>${escapeHtml(r.transcript || '(sessiz)')}</div></div>`;
+}
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function renderHaber(){
+  const art = getTodayArticle();
+  const isAi = String(art.id||'').startsWith('ai-');
+
+  let bodyHtml = escapeHtml(art.body);
+  art.vocab.forEach(v => {
+    const re = new RegExp('\\b(' + escapeRegex(v.term) + ')\\b', 'i');
+    bodyHtml = bodyHtml.replace(re, '<b class="vocab-inline">$1</b>');
+  });
+
+  const vocabListHtml = art.vocab.map((v,i) => `<div class="wf-row" style="align-items:flex-start">
+    <div style="flex:1"><b>${escapeHtml(v.term)}</b> — <span class="muted">${escapeHtml(v.tr)}</span></div>
+    <button class="mini-btn" onclick="speakArticleVocab(${i})">🔊</button>
+  </div>`).join('');
+
+  const quizHtml = art.comprehension.map((q,qi) => {
+    const chosen = quizAnswers[qi];
+    const optsHtml = q.options.map((opt,oi) => {
+      let cls = 'quiz-opt';
+      if(quizChecked){
+        if(oi===q.correct) cls += ' correct';
+        else if(oi===chosen) cls += ' wrong';
+      } else if(chosen===oi) cls += ' selected';
+      return `<button class="${cls}" ${quizChecked?'disabled':''} onclick="selectQuizAnswer(${qi},${oi})">${escapeHtml(opt)}</button>`;
+    }).join('');
+    return `<div class="quiz-q"><div class="quiz-q-text">${qi+1}. ${escapeHtml(q.q)}</div><div class="quiz-opts">${optsHtml}</div></div>`;
+  }).join('');
+  const correctCount = art.comprehension.filter((q,qi) => quizAnswers[qi]===q.correct).length;
+
+  const discussionHtml = art.discussion.map((q,qi) => {
+    const key = String(qi);
+    return `<div class="result-box" style="margin-top:10px">
+      <div style="font-weight:600;margin-bottom:8px">${qi+1}. ${escapeHtml(q)}</div>
+      <div class="actions">${micButtonHTML('discussion', key)}</div>
+      ${discussionResultHTML(key)}
+    </div>`;
+  }).join('');
+
+  document.getElementById('s-haber').innerHTML = `
+    <div class="card">
+      <div class="ch">
+        <span class="ct">📰 ${escapeHtml(art.title)}</span>
+        <span class="bdg ${isAi?'bg':'bk'}">${isAi ? '✨ AI Üretimi' : 'Günün Haberi'}</span>
+      </div>
+      <div class="muted" style="line-height:1.7;margin:10px 0;color:var(--text)">${bodyHtml}</div>
+      <div class="actions">
+        <button class="ab2" onclick="speakArticleBody()">🔊 Makaleyi Dinle</button>
+        <button class="ab2" onclick="cycleArticle();renderCurrent()">🔀 Farklı Haber</button>
+        <button class="ab" id="news-gen-btn" onclick="generateAiArticle()">✨ Yeni Haber Üret (AI)</button>
+      </div>
+      ${!aiEnabled() ? `<div class="muted" style="margin-top:8px">API anahtarı eklemeden "Yeni Haber Üret" bir sonraki hazır habere geçer. Gerçek zamanlı yeni haberler için Ayarlar'dan bir Anthropic API anahtarı ekle.</div>` : ''}
+    </div>
+
+    <div class="card">
+      <div class="ct" style="margin-bottom:8px">🗂️ Bu Haberin Kelimeleri</div>
+      ${vocabListHtml}
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="ct">✅ Anlama Testi</span>${quizChecked ? `<span class="bdg ${correctCount===art.comprehension.length?'bg':'ba'}">${correctCount}/${art.comprehension.length} doğru</span>` : ''}</div>
+      ${quizHtml}
+      ${!quizChecked ? `<div class="actions"><button class="ab" onclick="checkQuiz()">Kontrol Et</button></div>` : ''}
+    </div>
+
+    <div class="card">
+      <div class="ct" style="margin-bottom:4px">🗣️ Tartışma Soruları</div>
+      <div class="muted">Mikrofona konuşarak fikrini söyle, cevabın burada görünsün.</div>
+      ${discussionHtml}
+    </div>
+  `;
 }
 
 // ── RENDER: SERBEST ──
